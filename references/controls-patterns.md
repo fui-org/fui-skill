@@ -1,6 +1,6 @@
 # Controls Patterns & Logic
 
-Guide to defining logic and layout in `controls.json`.
+Guide to defining logic and layout in `module.json`.
 
 ## 1. Component Actions (`data`)
 
@@ -22,6 +22,29 @@ Actions are the "methods" of your module. They handle APIs, dialogs, and logic f
   }
 }
 ```
+
+### Literal String Values (Important)
+
+Apply this rule only for values passed inside action `IN` mapping.
+If a string has no spaces, FUI can treat it like an expression/variable in `IN`.  
+When you need a plain literal string, force it with:
+- Backtick prefix: ``"`myValue"`` (or closed ``"`myValue`"``)
+- Single quotes inside JSON string: `"'myValue'"`
+
+Examples:
+```json
+{
+  "openDialog": {
+    "FUN": "openWindow",
+    "IN": {
+      "id": "`winUser",
+      "url": "'/fp/module?mid=123'"
+    }
+  }
+}
+```
+
+For component props in `attr` without `:`, value is already a plain string prop and usually does not need wrapping.
 
 ### Conditional Logic
 ```json
@@ -45,6 +68,8 @@ Actions are the "methods" of your module. They handle APIs, dialogs, and logic f
 ## 2. Watchers (`watch`)
 
 Trigger actions automatically when data changes.
+
+For production-grade cascading and filter watcher design, see [watcher-patterns.md](watcher-patterns.md).
 
 ```json
 "watch": {
@@ -85,6 +110,17 @@ Trigger actions automatically when data changes.
 }
 ```
 
+### `innerHTML` Supports `{{ }}`
+Use Vue interpolation in `innerHTML` for text pulled from `data`.
+
+```json
+{
+  "el": "div",
+  "w": "12",
+  "innerHTML": "Xin chao {{formData.fullName}}"
+}
+```
+
 ### Responsive Forms
 Control form width dynamically using breakpoints.
 
@@ -112,4 +148,4 @@ Control form width dynamically using breakpoints.
 -   **HTML Content**: Use `innerHTML` for text or simple HTML.
 -   **Events**: `v-on:click`, `v-on:change`. wrap logic in `CALL()`.
 -   **Visibility**: Use `v-if` (pre-render) or `v-show` (CSS toggle).
--   **Loops**: `v-for` is rarely used directly in `controls.json`. Use `f-table` for lists or recursive partials.
+-   **Loops**: `v-for` is rarely used directly in `module.json`. Use `f-table` for lists or recursive partials.

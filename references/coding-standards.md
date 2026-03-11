@@ -14,14 +14,14 @@
 -   **Custom Classes**: Use meaningful prefixed names (e.g., `ep-hero`, `ep-field-grid`). Avoid generic names like `.box` or `.red`.
 -   **State Classes**: Use descriptive names for state (e.g., `.is-active`, `.has-error`).
 
-### Action Keys (`controls.json`)
+### Action Keys (`module.json`)
 -   **API Actions**: Predix with `api` (e.g., `apiGetDSSuKien`, `apiUpdateUser`).
 -   **Event Handlers**: Prefix with `handle` (e.g., `handleOpenReport`, `handleSubmit`).
 -   **Dialog Actions**: Prefix with verb (e.g., `openUploadDialog`, `closeSettings`).
 
 ## 2. Menu Configuration (`set.menu`)
 
-Define the application menu in the `set` object of `controls.json`.
+Define the application menu in the `set` object of `module.json`.
 
 ```json
 "menu": [
@@ -52,9 +52,12 @@ Define the application menu in the `set` object of `controls.json`.
 
 ## 3. Project Structure
 
+-   **Canonical local structure**: Follow [module-structure.md](module-structure.md) as the default module layout.
+-   **Required core files**: Keep `_info.json` and `module.json` at module root.
 -   **`components/`**: Only place `.vue` files here. Do not sub-folder unless strictly necessary (FUI auto-scans this root).
+-   **`components/_components.json`**: Maintain component registry when using `uc-*` components.
 -   **`styles/`**: Custom CSS files. Ensure `index.css` is the entry point if multiple files exist.
--   **`controls.json`**: Keep this file clean. Move large static lists to the database or separate JSON files if supported.
+-   **`module.json`**: Keep this file clean. Move large static lists to the database or separate JSON files if supported.
 
 ## 4. Best Practices
 

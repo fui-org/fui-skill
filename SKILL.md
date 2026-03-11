@@ -1,6 +1,6 @@
 ---
 name: fui-skill
-description: Use this skill when developing, structuring, or modifying FUI web modules. It provides strict guidelines for the metadata-driven architecture (controls.json), mandatory grid layout system, action protocols, and includes specific tools for saving and publishing modules/components.
+description: Use this skill when developing, structuring, or modifying FUI web modules. It provides strict guidelines for the metadata-driven architecture (module.json), mandatory grid layout system, action protocols, and includes specific tools for saving and publishing modules/components.
 ---
 
 # FUI Skill
@@ -9,17 +9,21 @@ Develop web modules using FUI's metadata-driven approach where UI and logic are 
 
 ## Module Structure
 
-```
+```text
 <module-name>/
-├── module.json        (Core: data, watch, controls, set - Replaces controls.json)
-├── script.js          (Helper functions)
-├── _info.json         (Module Metadata: ID, Name, Framework version)
-├── dependencies.json  (External libraries & assets)
-├── header.html        (Optional: Header template)
-├── body.html          (Optional: Body template)
-├── components/        (Custom .vue components)
-└── styles/            (CSS)
+|-- _info.json                    (Required: module metadata)
+|-- module.json                   (Required: core data/watch/controls/set)
+|-- script.js                     (Recommended: helper logic)
+|-- dependencies.json             (Recommended: external js/css)
+|-- header.html                   (Optional)
+|-- body.html                     (Optional)
+|-- components/                   (Optional custom components)
+|   |-- _components.json          (Required when using components/)
+|   `-- uc-*.vue                  (Custom components, use `uc-` prefix)
+`-- styles/                       (Optional)
 ```
+
+For full local structure rules and checklist, see [module-structure.md](references/module-structure.md).
 
 ## module.json Anatomy
 
@@ -53,6 +57,30 @@ Define logic in `data` as named action objects. Execute with `CALL`.
   "CALLBACK": { "MESS": "Loaded!" }
 }
 ```
+
+### Literal String Rule (CRITICAL)
+
+This rule applies when passing values inside Action Protocol `IN` blocks.
+In `IN`, FUI core may evaluate string values as expressions/variables when the value has no spaces.
+
+To force a literal string value, use one of these patterns:
+- Prefix with backtick: ``"id": "`winUser"`` or ``"id": "`winUser`"``
+- Wrap with single quotes inside JSON string: `"id": "'winUser'"`
+
+Recommended for fields like `id`, `url`, or any key inside `IN` that must stay as plain text:
+
+```json
+{
+  "FUN": "openWindow",
+  "IN": {
+    "id": "`winUser",
+    "url": "'/fp/module?mid=123'"
+  }
+}
+```
+
+For Vue component props (`f-*`, `t-*`, `v-*`) without `:` in `attr`, values are plain strings by default.
+Example: `"url": "/fp/module?mid=123"` is already a literal string prop.
 
 ## Layout System (Grid & Controls)
 
@@ -101,6 +129,18 @@ Inside the `cols` array (or nested `innerHTML`), every item is a **Control Objec
 }
 ```
 
+### `innerHTML` Supports `{{ }}`
+
+`innerHTML` string can use Vue template interpolation for reactive text binding.
+
+```json
+{
+  "el": "div",
+  "w": 12,
+  "innerHTML": "Xin chao {{formData.fullName}}"
+}
+```
+
 ## Layout Rules
 
 -   **Wrapper**: ALWAYS start with the Grid Wrapper.
@@ -131,8 +171,13 @@ Copy templates from `examples/` as starting points. See [ui-templates.md](refere
 2.  **Reference Docs**: See `references/` for component and function details:
     -   [fastproject.md](references/fastproject.md) - Core action engine
     -   [default-function.md](references/default-function.md) - Utility functions
+    -   [module-structure.md](references/module-structure.md) - Canonical local module structure
+    -   [components.md](references/components.md) - FUI `f-*` component catalog with examples
+    -   [component-table.md](references/component-table.md) - `f-table` and `f-table-view` reference
+    -   [script-map.md](references/script-map.md) - Quick lookup map for scripts/functions
     -   [coding-standards.md](references/coding-standards.md) - Class naming & Menu config
     -   [controls-patterns.md](references/controls-patterns.md) - Action patterns & Logic
+    -   [watcher-patterns.md](references/watcher-patterns.md) - Cascading and filter watcher best practices
     -   [ui-templates.md](references/ui-templates.md) - Template usage guide
     -   [advanced-techniques.md](references/advanced-techniques.md) - Advanced Logic & PDF patterns
     -   [quality-assurance.md](references/quality-assurance.md) - Code Review & Edge Case Analysis
@@ -189,3 +234,4 @@ The `f-table` component supports built-in CRUD operations using `update-api` and
   }
 }
 ```
+

@@ -48,7 +48,7 @@ examples/dialog-form.json
 
 ## Usage Pattern
 
-1. Copy template content to your `controls.json`
+1. Copy template content to your `module.json`
 2. Replace placeholder APIs with real endpoints
 3. Adjust field names and labels
 4. Add to existing `data` and `controls` arrays
