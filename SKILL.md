@@ -148,6 +148,16 @@ Inside the `cols` array (or nested `innerHTML`), every item is a **Control Objec
 -   **Attributes**: Use `attr` for element attributes. Use `col` for grid column attributes.
 -   **Events**: Use `v-on:click` (valid JSON), not `@click`.
 
+## Vuetify 2 Styling Rule
+
+-   **Prefer Vuetify 2 classes first**: Always try Vuetify 2 utility classes, helper classes, and standard component props before writing inline `style`.
+-   **Use inline style only as fallback**: Only add `style` when Vuetify 2 classes/props cannot express the requirement cleanly.
+-   **Common preference order**:
+    1. Vuetify component props (`color`, `outlined`, `dense`, `elevation`, `rounded`, `tile`, `justify`, `align`)
+    2. Vuetify/helper classes (`pa-*`, `ma-*`, `d-flex`, `flex-*`, `justify-*`, `align-*`, `text-*`, `primary--text`, `rounded-*`)
+    3. Custom class names
+    4. Inline `style` as the last option
+
 ## UI Templates
 
 Copy templates from `examples/` as starting points. See [ui-templates.md](references/ui-templates.md) for usage guide.
@@ -234,4 +244,3 @@ The `f-table` component supports built-in CRUD operations using `update-api` and
   }
 }
 ```
-
