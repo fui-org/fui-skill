@@ -52,7 +52,7 @@ Define the application menu in the `set` object of `module.json`.
 
 ## 3. Project Structure
 
--   **Canonical local structure**: Follow [module-structure.md](module-structure.md) as the default module layout.
+-   **Canonical module structure**: Follow [module-structure.md](module-structure.md) as the default module layout. In workspace-aware environments, apply it to real local files. In chat contexts, use it as the target output contract.
 -   **Required core files**: Keep `_info.json` and `module.json` at module root.
 -   **`components/`**: Only place `.vue` files here. Do not sub-folder unless strictly necessary (FUI auto-scans this root).
 -   **`components/_components.json`**: Maintain component registry when using `uc-*` components.

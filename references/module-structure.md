@@ -1,6 +1,9 @@
-# Module Structure (Local FUI Standard)
+# Module Structure (Workspace Layout and Chat Output Target)
 
-Use this structure when creating, refactoring, or reviewing a local FUI module.
+Use this structure when creating, refactoring, or reviewing a FUI module.
+
+- In editor or extension contexts with workspace access, apply it as the real local folder structure.
+- In chat or agent-chat contexts, use it as the target output layout and do not assume the files already exist on disk.
 
 ## Canonical Local Structure
 
@@ -17,6 +20,15 @@ Use this structure when creating, refactoring, or reviewing a local FUI module.
 |   `-- uc-*.vue                  # Custom components (prefix uc-)
 `-- styles/                       # Optional: if project supports local style folder
 ```
+
+## Chat-Safe Usage
+
+When working without local workspace access:
+
+1. Present this tree as the target package layout, not as a claimed filesystem state.
+2. Return file contents in separate code blocks or clearly labeled sections.
+3. Ask the user to paste `_info.json`, `module.json`, `script.js`, or component files when a review or patch depends on existing code.
+4. Scope recommendations to the files actually provided instead of inventing unseen surrounding files.
 
 ## Required vs Optional
 
@@ -101,7 +113,7 @@ This pattern matches large report modules and keeps `module.json` maintainable.
 
 ## Review Checklist (Structure)
 
-1. Does module root contain `_info.json` and `module.json`?
+1. If the module files are available, does module root contain `_info.json` and `module.json`?
 2. Is heavy logic moved to `script.js` instead of oversized `EXE`?
 3. If custom UI exists, is it moved to `components/uc-*.vue`?
 4. If `components/` exists, does `_components.json` register them correctly?
