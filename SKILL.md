@@ -1,6 +1,6 @@
 ---
 name: fui-skill
-description: Use this skill when developing, structuring, reviewing, or modifying FUI web modules. It provides strict guidelines for the metadata-driven architecture (module.json), mandatory grid layout system, action protocols, and environment-aware workflow rules. In editor or extension contexts with workspace access, apply the local module structure directly and work with module files. In chat or agent-chat contexts without workspace access, work from pasted artifacts and produce the target file contents or folder layout without assuming local files exist.
+description: Use this skill when developing, structuring, reviewing, or modifying FUI web modules. It provides strict guidelines for the metadata-driven architecture (module.json), mandatory grid layout system, action protocols, and environment-aware workflow rules. Apply the canonical module structure in both editor and chat contexts. In editor or extension contexts with workspace access, work with the real module files. In chat or agent-chat contexts without workspace access, work from pasted artifacts while virtualizing the same module structure in the response.
 ---
 
 # FUI Skill
@@ -12,12 +12,12 @@ Develop web modules using FUI's metadata-driven approach where UI and logic are 
 Apply this skill differently depending on the environment:
 
 - **Editor / extension / workspace context**: Read, create, and modify local module folders and files when the environment actually exposes them. Apply the canonical local module structure directly.
-- **Chat app / agent chat context**: Do not assume local file access, an existing workspace, or that the module folder already exists. Work from pasted JSON, snippets, screenshots, or explicit file attachments. Treat the canonical module structure as the target output format, not as proof that local files are available.
+- **Chat app / agent chat context**: Do not assume local file access, an existing workspace, or that the module folder already exists. Work from pasted JSON, snippets, screenshots, or explicit file attachments. Still apply the canonical module structure to virtualize the expected files, organize the response, and reason about what is missing.
 - **Unclear context**: Infer from the available tools and artifacts. If no workspace or local files are explicitly available, default to chat-safe behavior and avoid pretending to read or update files that were never provided.
 
-## Module Structure Target
+## Module Structure
 
-Use this structure as the canonical folder layout for a complete FUI module. In editor or extension contexts, create or update these files directly. In chat contexts, use the same structure as the target output package and provide the relevant file contents inline.
+Use this structure as the canonical folder layout for a complete FUI module in both environments. In editor or extension contexts, create or update these files directly. In chat contexts, use the same structure to virtualize the module, explain which files are involved, and provide the relevant file contents inline.
 
 ```text
 <module-name>/
@@ -25,14 +25,14 @@ Use this structure as the canonical folder layout for a complete FUI module. In 
 |-- module.json                   (Required: core data/watch/controls/set)
 |-- script.js                     (Recommended: helper logic)
 |-- dependencies.json             (Recommended: external js/css)
-|-- header.html                   (Optional)
+|-- header.html                   (Recommended: all module/component CSS lives here)
 |-- body.html                     (Optional)
 |-- components/                   (Optional custom components)
 |   |-- _components.json          (Required when using components/)
 |   `-- uc-*.vue                  (Custom components, use `uc-` prefix)
 ```
 
-For full structure rules and checklist, see [module-structure.md](references/module-structure.md). That reference applies directly in workspace-aware environments and acts as the target layout guide in chat environments.
+For full structure rules and checklist, see [module-structure.md](references/module-structure.md). Apply that reference in both workspace-aware and chat environments.
 
 ## module.json Anatomy
 
@@ -172,9 +172,23 @@ Inside the `cols` array (or nested `innerHTML`), every item is a **Control Objec
 - **Use inline style only as fallback**: Only add `style` when Vuetify 2 classes/props cannot express the requirement cleanly.
 - **Common preference order**:
   1. Vuetify component props (`color`, `outlined`, `dense`, `elevation`, `rounded`, `tile`, `justify`, `align`)
-  2. Vuetify/helper classes (`pa-*`, `ma-*`, `d-flex`, `flex-*`, `justify-*`, `align-*`, `text-*`, `primary--text`, `rounded-*`)
-  3. Custom class names
-  4. Inline `style` as the last option
+    2. Vuetify/helper classes (`pa-*`, `ma-*`, `d-flex`, `flex-*`, `justify-*`, `align-*`, `text-*`, `primary--text`, `rounded-*`)
+    3. Custom class names
+    4. Inline `style` as the last option
+- **No component-local style blocks**: Do not write `<style>` or `<style scoped>` inside `.vue` components.
+- **Header-owned styles**: Put all custom CSS in `header.html`. Treat `header.html` as the canonical place for module and component styles.
+- **No template strings in `<template>`**: Never use backtick template strings inside Vue `<template></template>`. Use string concatenation or computed values instead.
+
+## Reusable Component Rule
+
+When creating `components/uc-*.vue`, prefer reusable building blocks over one-off screen-specific components.
+
+- Design the component around clear props, emits, and slots before adding business-specific logic.
+- Keep data fetching, routing, permissions, and page orchestration in `module.json` or parent actions unless the component is explicitly meant to own them.
+- Use neutral names such as `items`, `value`, `label`, `loading`, `readonly`, `disabled`, `options`, or `config` instead of tightly coupling the component to one screen's entity names when a generic contract will work.
+- Emit events upward (`input`, `change`, `select`, `submit`, `remove`, `action`) instead of mutating parent state indirectly.
+- Support configurable empty/loading/error states with props or slots when the component is intended for repeated use.
+- Only build a highly specific component when the UI is genuinely unique to one workflow and abstraction would make it harder to maintain.
 
 ## UI Templates
 
@@ -191,16 +205,19 @@ Copy templates from `examples/` as starting points. See [ui-templates.md](refere
 
 1.  **Match the environment before acting**:
     - In editor or extension contexts with workspace access, create or update the real module root directory first (for example, `my-module/`) and keep all module files inside it.
-    - In chat or agent-chat contexts, do not claim to have created folders or edited files unless the environment actually supports it. Instead, present the target folder tree and provide the file contents the user should use.
+    - In chat or agent-chat contexts, do not claim to have created folders or edited files unless the environment actually supports it. Instead, use the same module structure virtually, present the folder tree when helpful, and provide the file contents the user should use.
     - When reviewing an existing module in chat, ask for the specific files or snippets that are needed instead of assuming they are readable from disk.
 
 2.  **Creating New Modules**:
     - `module.json` (Required): Define UI and logic.
     - `_info.json` (Required): Metadata (ID, Name, Framework).
     - `dependencies.json` (Optional): External libs.
-    - `styles/index.css` (Optional): Custom CSS.
+    - `header.html` (Optional but preferred for styling): Place all custom CSS here when the module needs styles.
     - `components/` (Optional): Custom Vue components.
     - If the environment is chat-only, return these as separate file payloads or clearly labeled code blocks.
+    - When creating a custom Vue component, default to a reusable prop/event/slot API unless the user clearly needs a one-off component tied to a single screen.
+    - Never add `<style>` or `<style scoped>` inside component files. Move those styles to `header.html`.
+    - Never use backtick template strings inside Vue `<template>` markup.
 
 3.  **Reference Docs**: See `references/` for component and function details:
     - [fastproject.md](references/fastproject.md) - Core action engine

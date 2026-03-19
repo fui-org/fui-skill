@@ -1,9 +1,9 @@
-# Module Structure (Workspace Layout and Chat Output Target)
+# Module Structure (Canonical for Workspace and Chat)
 
 Use this structure when creating, refactoring, or reviewing a FUI module.
 
 - In editor or extension contexts with workspace access, apply it as the real local folder structure.
-- In chat or agent-chat contexts, use it as the target output layout and do not assume the files already exist on disk.
+- In chat or agent-chat contexts, use it to virtualize the same module structure and organize the response, without assuming the files already exist on disk.
 
 ## Canonical Local Structure
 
@@ -13,19 +13,18 @@ Use this structure when creating, refactoring, or reviewing a FUI module.
 |-- module.json                   # Required: data/watch/controls/set
 |-- script.js                     # Recommended: helper logic for FUN/EXE/chart/transform
 |-- dependencies.json             # Recommended: external js/css declarations
-|-- header.html                   # Optional: css/header markup
+|-- header.html                   # Recommended: all module/component CSS lives here
 |-- body.html                     # Optional: additional body markup
 |-- components/                   # Optional: custom Vue components
 |   |-- _components.json          # Required when using custom components
 |   `-- uc-*.vue                  # Custom components (prefix uc-)
-`-- styles/                       # Optional: if project supports local style folder
 ```
 
 ## Chat-Safe Usage
 
 When working without local workspace access:
 
-1. Present this tree as the target package layout, not as a claimed filesystem state.
+1. Present this tree as the canonical module layout, not as a claimed filesystem state.
 2. Return file contents in separate code blocks or clearly labeled sections.
 3. Ask the user to paste `_info.json`, `module.json`, `script.js`, or component files when a review or patch depends on existing code.
 4. Scope recommendations to the files actually provided instead of inventing unseen surrounding files.
@@ -44,7 +43,6 @@ When working without local workspace access:
 - `header.html`
 - `body.html`
 - `components/` (with `_components.json` and `uc-*.vue`)
-- `styles/`
 
 ## File Responsibilities
 
@@ -76,6 +74,10 @@ When working without local workspace access:
 ### components/uc-*.vue
 - Use `uc-` prefix for custom components.
 - Keep component-specific UI complexity here instead of bloating `module.json`.
+- Prefer reusable component contracts: props for input, emits for output, slots for extensibility.
+- Avoid baking page-specific API calls or route logic into the component unless that coupling is intentional and unavoidable.
+- Never place `<style>` or `<style scoped>` blocks inside the component. Move all CSS to `header.html`.
+- Never use backtick template strings inside the component `<template>`.
 
 ## Naming and Prefix Rules
 
@@ -107,7 +109,7 @@ Use:
 - `module.json` for filters + action orchestration
 - `script.js` for conversion/chart utilities
 - `components/uc-*.vue` for chart/table dashboard presentation
-- `header.html` for module-scoped styles when needed
+- `header.html` for all module-scoped and component-scoped styles
 
 This pattern matches large report modules and keeps `module.json` maintainable.
 
