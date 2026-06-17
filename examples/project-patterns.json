@@ -1,0 +1,222 @@
+{
+    "_comment": "Project Config Patterns Reference — Tổng hợp cấu trúc project.json và quan hệ với module.json set. Dùng làm tài liệu tham chiếu khi thiết kế hoặc cập nhật cấu hình project.",
+    "_patterns": {
+        "project_json_fields": [
+            "ProjectName — tên project hiển thị",
+            "title — tiêu đề mặc định cho các trang",
+            "apiDomain — base URL tAPI kèm alias, ví dụ: https://tapi.lhbs.vn/ hoặc https://tapi.lhu.edu.vn/acc/",
+            "login — URL trang đăng nhập",
+            "userInfo — endpoint lấy thông tin user đã đăng nhập",
+            "apiFile — endpoint upload file (tùy chọn)",
+            "menuStyle — màu sắc topmenu/leftmenu",
+            "menu — false (ẩn header) hoặc array (menu ngang trên header)",
+            "menuLeft — array menu sidebar trái",
+            "menuComponent — component tùy chỉnh nhúng vào vùng menu",
+            "domainSetting — override config theo từng domain (đa domain)"
+        ],
+        "menu_item_fields": [
+            "name — tên hiển thị (bắt buộc)",
+            "url — đường dẫn module, bỏ qua nếu chỉ là nhóm cha",
+            "icon — Material Design icon (mdi-*)",
+            "submenu — mảng menu con (cùng cấu trúc)",
+            "right — điều kiện hiển thị; thiếu = hiển thị cho tất cả user đã đăng nhập"
+        ],
+        "right_rules": [
+            "SystemRight: [1,2,3,9] — user.SystemRight phải nằm trong mảng này",
+            "FunctionRight: ['10','20'] — user.FunctionRight phải chứa ít nhất một code",
+            "Khi cả hai cùng có: user phải thỏa ĐồNG THỜI cả SystemRight VÀ FunctionRight",
+            "Không khai báo right — hiển thị cho tất cả user đã đăng nhập"
+        ],
+        "set_override": [
+            "module.json set kế thừa project.json data làm mặc định",
+            "effective = { ...project.json data, ...module.json set } — module set được ưu tiên",
+            "Chỉ khai báo field cần override, không cần lặp lại toàn bộ project config",
+            "menu: false trong set — ẩn header menu chỉ cho trang đó",
+            "title: 'Tên trang' trong set — đổi tiêu đề riêng cho trang"
+        ],
+        "domain_setting": [
+            "Key là hostname domain (ví dụ: sec.lhu.edu.vn)",
+            "Runtime tự phát hiện domain hiện tại và áp dụng override tương ứng",
+            "Mỗi domain có thể có apiDomain, fileDomain, login, userInfo riêng"
+        ]
+    },
+
+    "_note_structure": "project.json chứa một object 'data' duy nhất (khác với module.json có 4 section data/watch/controls/set)",
+
+    "data_single_domain": {
+        "_note": "Pattern 1 — Project một domain (phổ biến)",
+        "ProjectName": "Tên Project",
+        "title": "TIÊU ĐỀ HIỂN THỊ",
+        "apiDomain": "https://tapi.lhu.edu.vn/acc/",
+        "login": "https://app.lhu.edu.vn/",
+        "userInfo": "https://tapi.lhu.edu.vn/acc/UserInfo/acc",
+        "apiFile": "https://file.lhu.edu.vn/acc/upload/FileData",
+        "menuStyle": {
+            "_note": "Tùy chỉnh màu menu — bỏ qua nếu dùng màu mặc định",
+            "topmenu": {
+                "bgcolor": "#217D46",
+                "textcolor": "white"
+            },
+            "leftmenu": {
+                "bgcolor": "#217D46",
+                "textcolor": "white"
+            }
+        },
+        "menu": false,
+        "_note_menu_false": "menu: false = ẩn hoàn toàn header menu; thay bằng array nếu muốn menu ngang",
+        "menuLeft": [
+            {
+                "_note": "Item đơn — không có submenu",
+                "name": "Trang chủ",
+                "icon": "mdi-home",
+                "url": "/trang-chu"
+            },
+            {
+                "_note": "Item nhóm — có submenu, right cho cả nhóm",
+                "name": "Quản lý dữ liệu",
+                "icon": "mdi-database",
+                "right": {
+                    "SystemRight": [1, 2, 3, 5, 9]
+                },
+                "submenu": [
+                    {
+                        "name": "Danh sách",
+                        "url": "/danh-sach"
+                    },
+                    {
+                        "_note": "Submenu item có right riêng — phải thỏa right nhóm CHA trước",
+                        "name": "Quản trị",
+                        "url": "/quan-tri",
+                        "right": {
+                            "SystemRight": [3, 5, 9]
+                        }
+                    }
+                ]
+            },
+            {
+                "_note": "Item yêu cầu cả SystemRight VÀ FunctionRight cùng lúc",
+                "name": "Cấp 1 - Giáo viên",
+                "icon": "mdi-human-male-board",
+                "right": {
+                    "FunctionRight": ["10"],
+                    "SystemRight": [1, 2, 5, 9]
+                },
+                "submenu": [
+                    { "name": "Danh sách học sinh", "url": "/ds-hoc-sinh?capid=1" },
+                    {
+                        "name": "Nhập điểm",
+                        "url": "/nhap-diem?capid=1",
+                        "right": { "SystemRight": [1, 2, 5, 9] }
+                    }
+                ]
+            },
+            {
+                "_note": "URL ngoài — link tuyệt đối",
+                "name": "Hướng dẫn sử dụng",
+                "icon": "mdi-book",
+                "url": "https://docs.example.com/huong-dan"
+            },
+            {
+                "_note": "Item không có url, không có submenu — placeholder/disabled",
+                "name": "Hỗ trợ sự cố",
+                "icon": "mdi-help-circle-outline",
+                "url": "/support"
+            }
+        ],
+        "menuComponent": [
+            {
+                "_note": "Component nhúng vào vùng menu — ví dụ: dropdown chọn niên khóa, chọn vai trò",
+                "el": "uc-nien-khoa"
+            },
+            {
+                "el": "uc-vaitro"
+            }
+        ]
+    },
+
+    "data_multi_domain": {
+        "_note": "Pattern 2 — Project chạy trên nhiều domain, mỗi domain một DB/tAPI riêng",
+        "ProjectName": "Security Manager",
+        "title": "Quản lý phân quyền",
+        "login": "https://login.fui.vn",
+        "apiDomain": "https://api.fui.vn/fp/",
+        "userInfo": "https://api.fui.vn/fp/UserInfo/fp",
+        "_note_domain": "domainSetting override config khi user truy cập từ domain tương ứng",
+        "domainSetting": {
+            "sec.fap.vn": {
+                "login": "https://login.fap.vn",
+                "apiDomain": "https://api.fap.vn/acc/",
+                "fileDomain": "https://file.fap.vn/acc/",
+                "userInfo": "https://api.fap.vn/acc/UserInfo/acc"
+            },
+            "sec.lhu.edu.vn": {
+                "login": "https://app.lhu.edu.vn",
+                "apiDomain": "https://tapi.lhu.edu.vn/acc/",
+                "fileDomain": "https://file.lhu.edu.vn/acc/",
+                "userInfo": "https://tapi.lhu.edu.vn/acc/UserInfo/acc"
+            },
+            "sec.lhbs.vn": {
+                "login": "https://login.lhbs.vn",
+                "apiDomain": "https://tapi.lhbs.vn/acc/",
+                "fileDomain": "https://file.lhbs.vn/acc/",
+                "userInfo": "https://tapi.lhbs.vn/acc/UserInfo/acc"
+            }
+        },
+        "menu": [
+            {
+                "_note": "menu (array) = header ngang — khác với menuLeft (sidebar)",
+                "name": "Users",
+                "right": { "SystemRight": [1, 2, 3, 9] },
+                "url": "/UserManager"
+            },
+            {
+                "name": "Permission",
+                "right": { "SystemRight": [2, 3, 9] },
+                "url": "/Permission"
+            },
+            {
+                "_note": "Menu ngang cũng có thể có submenu",
+                "name": "Rights",
+                "right": { "SystemRight": [2, 3, 9] },
+                "submenu": [
+                    { "name": "System Right", "url": "/SystemRight" },
+                    { "name": "Function Right", "url": "/FunctionRight" }
+                ]
+            }
+        ]
+    },
+
+    "module_set_examples": {
+        "_note": "Các ví dụ về module.json set — override project config cho từng trang riêng",
+
+        "set_hide_menu": {
+            "_note": "Trang ẩn header menu (ví dụ: trang nhúng, trang in, landing page)",
+            "set": {
+                "menu": false
+            }
+        },
+
+        "set_custom_title": {
+            "_note": "Trang có tiêu đề riêng",
+            "set": {
+                "title": "Nhập điểm Tiểu học - Cấp 1"
+            }
+        },
+
+        "set_no_menu_at_all": {
+            "_note": "Trang ẩn hoàn toàn cả header lẫn sidebar (module con mở qua openWindow)",
+            "set": {
+                "menu": false,
+                "menuLeft": []
+            }
+        },
+
+        "set_override_api": {
+            "_note": "Trang dùng apiDomain khác project (hiếm, nhưng có thể override)",
+            "set": {
+                "title": "Trang đặc biệt",
+                "apiDomain": "https://other-api.example.com/alias/"
+            }
+        }
+    }
+}
