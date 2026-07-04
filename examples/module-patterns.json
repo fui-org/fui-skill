@@ -1,0 +1,893 @@
+{
+    "_comment": "Module Patterns Reference — Tổng hợp các pattern UI nâng cao từ thực tế. Dùng làm tài liệu tham chiếu khi thiết kế module có bảng dữ liệu phức tạp, nhiều dialog, phân quyền inline, và luồng điều kiện.",
+    "_patterns": {
+        "data_init": [
+            "State + action khai báo trong cùng object data[0]",
+            "Immediate CALL khi load: {CALL: 'actionName'} đứng độc lập cuối data array",
+            "Multi CALL khi load: nhiều {CALL} riêng biệt",
+            "menuChucNang array trong data — định nghĩa menu hành động dùng chung cho t-menu",
+            "IF startup — auto CALL hoặc openWindow khi URL params thỏa điều kiện (typeof(x)!='undefined'). Đặt ĐẦU data[] để chạy trước CALL",
+            "_.find() trong CALLBACK/state — \"[_.find(ds, {ID: sID})]\" để set selected item từ array sau khi load"
+        ],
+        "watch": [
+            "Watch 1 action: 'key': {CALL: 'action'}",
+            "Watch nhiều action: 'key': [{CALL: 'a1'}, {CALL: 'a2'}]",
+            "Watch set state + CALL: 'key': [{TypeLoad: 1, fTitle: '...'}, {CALL: 'getData'}]",
+            "Watch với EXE pushRouter — sync URL khi state thay đổi: {EXE: \"pushRouter(`/path?id=${id}`)\"}",
+            "Watch với IF/THEN/ELSE + EXE — conditional URL push theo giá trị mới của state"
+        ],
+        "table_columns": [
+            "t-select — dropdown inline trong ô, có CONFIRM trước khi lưu",
+            "t-check — toggle boolean với action chain",
+            "t-button — nút trong ô, hỗ trợ :color/:icon-text/:label động từ item",
+            "t-link — text link trong ô: {el: 't-link', attr: {':url': 'item.pageUrl', 'target': '_blank'}}",
+            "t-menu — menu thả xuống liên kết menuChucNang",
+            "v-chip-group + v-chip — hiển thị mảng giá trị, click mở dialog",
+            "v-icon — icon có v-if điều kiện hoặc v-on:click để mở dialog",
+            "divider: true — đường kẻ dọc phân cách nhóm cột, đặt trên cột đầu tiên của nhóm mới",
+            ":item-class — tô màu dòng: item => item.Flag>0 ? 'danger' : ''",
+            ":show-select + v-model — chọn nhiều dòng vào mảng state",
+            "excel: true — nút xuất Excel"
+        ],
+        "table_inline_crud": [
+            ":update-form — v-if: dialogModel=='new' để ẩn/hiện field theo chế độ",
+            ":update-api — {default-item, new, edit} — bỏ delete nếu không cần",
+            ":disabled-update — khóa nút sửa theo quyền",
+            ":update-form-attr — {width: N} tùy chỉnh kích thước dialog form inline",
+            "$row trong IN — 'jsonObj': '$row' truyền toàn bộ object row thay vì map từng field",
+            "default-item với giá trị từ state — 'Field': 'dsParent[0].Field' kế thừa context hiện tại",
+            ":update-api với CHỈ default-item (không có new/edit/delete) — inject extra fields vào items client-side"
+        ],
+        "callback_patterns": [
+            "CALLBACK object: {CALL: 'reload'}",
+            "CALLBACK array nhiều bước: [{CALL}, {reset state}, {MESS}]",
+            "CALLBACK JS expression: '{{ _.forEach(ds, x => x.F = JSON.parse(x.F)) }}'",
+            "Nested IF/THEN/ELSE trong CALLBACK — routing theo TypeLoad state",
+            "CALLBACK string 'location.reload()' — reload toàn trang (dùng khi cần re-init hoàn toàn)",
+            "CALLBACK set state: { 'sModuleID': 'dsModule[0].ModuleID' } — auto-select first item sau khi load",
+            "CALLBACK reset multi-state cùng lúc: { 'sSelected': [], 'dlDialog': false } — clear + close dialog"
+        ],
+        "dialog_patterns": [
+            "hidden-container — wrapper cho dialog",
+            "addNew flag (0/1) — tạo mới vs cập nhật trong cùng dialog; :disabled: 'addNew==0'",
+            "v-switch — toggle hiện/ẩn field phụ",
+            "v-checkbox v-for — checkbox list động cho phân quyền hàng loạt",
+            "dual-toolbar dialog — v-toolbar thứ 2 làm filter bar trong dialog (thay vì v-card-text row riêng)",
+            "f-table trong dialog — show-select để chọn items, max-height thay vì :height"
+        ],
+        "navigation": [
+            "FUN: openWindow — mở module khác trong floating window: {id, title, url}",
+            "openWindow button — custom button trong window header: {label, icon-text, ctrlhotkey: 83, action: {'#WinID': {CALL: 'cmdSAVE'}}}",
+            "openWindow onclose — action hoặc reset state khi đóng window: {onclose: {stateKey: null}}",
+            "f-button :href + target — nút link external: {':href': '`https://.../${id}`', 'target': '_blank'}",
+            "f-menu item href+target — menu item dạng external link thay vì action",
+            "f-menu inline :items — items có action/href/target định nghĩa trực tiếp trong attr (không qua menuChucNang)",
+            "TypeLoad — biến int kiểm soát chế độ hiển thị của cùng một bảng",
+            "row prop object — {'v-if': '...', 'class': '...'} để ẩn/hiện cả row theo điều kiện",
+            "pushRouter(url) — navigate URL bar từ EXE: \"pushRouter(`/path?pid=${pid}`)\""
+        ]
+    },
+
+    "data": [
+        {
+            "TypeLoad": 1,
+            "fTableTitle": "",
+            "dsItems": [],
+            "dsCategory": [],
+            "dsRights": [],
+            "sItemSelected": [],
+            "sRightSelected": [],
+            "dongChon": null,
+            "dlInfo": false,
+            "dlRight": false,
+            "dlAssign": false,
+            "addNew": 0
+        },
+        {
+            "_note": "menuChucNang — định nghĩa trong data, bind vào t-menu :items",
+            "menuChucNang": [
+                {
+                    "color": "primary",
+                    "icon-text": "mdi-account-details",
+                    "text": "Cập nhật thông tin",
+                    "action": [
+                        {
+                            "addNew": 0,
+                            "dongChon": "item",
+                            "sID": "item.ID",
+                            "sName": "item.Name",
+                            "sEmail": "item.Email"
+                        },
+                        { "dlInfo": true }
+                    ]
+                },
+                {
+                    "color": "primary",
+                    "icon-text": "mdi-shield-account-outline",
+                    "text": "Phân quyền",
+                    "action": [
+                        { "dongChon": "item", "sID": "item.ID" },
+                        {
+                            "_note": "FUN openWindow — mở module khác trong popup",
+                            "FUN": "openWindow",
+                            "IN": {
+                                "id": "`WinPermission",
+                                "title": "`Phân quyền",
+                                "url": "`/permission?id={{item.ID}}"
+                            }
+                        }
+                    ]
+                },
+                {
+                    "color": "error",
+                    "icon-text": "mdi-delete",
+                    "text": "Xóa",
+                    "action": [
+                        { "dongChon": "item" },
+                        {
+                            "CONFIRM": "Bạn có chắc muốn xóa <span style='color:red'>{{item.Name}}</span>?",
+                            "API": "/EntityDelete",
+                            "IN": { "ID": "dongChon.ID" },
+                            "CALLBACK": [
+                                { "MESS": "Xóa thành công." },
+                                { "CALL": "getData" }
+                            ]
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "getData": {
+                "API": "/EntityList",
+                "IN": { "CategoryID": "sCategoryID", "Keyword": "sKeyword" },
+                "OUT": "dsItems"
+            },
+            "getCategory": {
+                "API": "/CategorySelectAll",
+                "OUT": "dsCategory",
+                "CALLBACK": { "sCategoryID": "dsCategory[0].CategoryID" }
+            },
+            "getRights": {
+                "API": "/RightSelectByID",
+                "IN": { "EntityID": "sID" },
+                "OUT": "dsRights"
+            },
+            "_note_typeload": "TypeLoad pattern — cùng OUT 'dsItems', switch API để đổi chế độ xem",
+            "getItemsDenied": {
+                "API": "/EntityDeniedList",
+                "OUT": "dsItems"
+            },
+            "getItemsInactive": {
+                "API": "/EntityInactiveList",
+                "OUT": "dsItems"
+            }
+        },
+        {
+            "saveRights": {
+                "API": "/RightUpdate",
+                "IN": { "EntityID": "sID", "RightList": "sRightSelected" },
+                "CALLBACK": { "CALL": "getRights" }
+            },
+            "_note_bulk": "Thao tác hàng loạt — sItemSelected từ show-select",
+            "bulkDelete": {
+                "API": "/EntityBulkDelete",
+                "IN": { "IDList": "sItemSelected" },
+                "CALLBACK": [
+                    { "CALL": "getData" },
+                    { "sItemSelected": [] },
+                    { "MESS": "Đã xóa các mục đã chọn." }
+                ]
+            },
+            "_note_callback_js": "CALLBACK JS — parse JSON từ server response bằng lodash",
+            "getItemsWithParsing": {
+                "API": "/EntityListWithJson",
+                "OUT": "dsItems",
+                "CALLBACK": "{{ _.forEach(dsItems, (x) => x.Functions = JSON.parse(x.Functions)) }}"
+            }
+        },
+        {
+            "_note_lodash_find": "_.find() trong CALLBACK — set selected item từ array sau khi load list",
+            "getWithFind": {
+                "API": "/EntityList",
+                "OUT": "dsItems",
+                "CALLBACK": {
+                    "itemSelected": "[_.find(dsItems, { ItemID: selectedID })]"
+                }
+            }
+        },
+        {
+            "_note_startup_if": "IF startup — đặt ĐẦU data[] để chạy trước CALL. Auto openWindow khi URL params thỏa điều kiện",
+            "IF": "typeof(parentID) != 'undefined' && typeof(childID) != 'undefined'",
+            "THEN": {
+                "FUN": "openWindow",
+                "IN": {
+                    "id": "`WinEditor",
+                    "title": "`Chi tiết: {{parentID}} / {{childID}}",
+                    "url": "`/editor?parentID={{parentID}}&childID={{childID}}",
+                    "_note_button": "button: custom button trong window header. ctrlhotkey: 83 = Ctrl+S",
+                    "button": {
+                        "label": "Save",
+                        "icon-text": "mdi-cloud-upload-outline",
+                        "ctrlhotkey": 83,
+                        "action": { "#WinEditor": { "CALL": "cmdSAVE" } }
+                    },
+                    "_note_onclose": "onclose: reset state về null khi đóng window",
+                    "onclose": { "childID": null }
+                }
+            }
+        },
+        { "CALL": "getCategory" },
+        { "CALL": "getData" }
+    ],
+
+    "watch": {
+        "sCategoryID": [
+            { "TypeLoad": 1, "fTableTitle": "" },
+            { "CALL": "getData" }
+        ],
+        "sKeyword": { "CALL": "getData" },
+        "sID": { "CALL": "getRights" },
+        "_note_push_router": "pushRouter — sync URL bar khi state thay đổi (pid, mid là URL param được route)",
+        "pid": [
+            { "CALL": "getItems" },
+            { "EXE": "pushRouter(`/path?pid=${pid}`)" }
+        ],
+        "_note_watch_if_exe": "Watch IF/THEN/ELSE + EXE — conditional URL push theo giá trị mới của state",
+        "childID": {
+            "IF": "_.isNull(childID) || _.isUndefined(childID)",
+            "THEN": { "EXE": "pushRouter(`/path?pid=${pid}`)" },
+            "ELSE": { "EXE": "pushRouter(`/path?pid=${pid}&childID=${childID}`)" }
+        }
+    },
+
+    "controls": [
+        {
+            "prop": "grid-list-md fluid",
+            "rows": [
+                {
+                    "prop": "",
+                    "cols": [
+                        {
+                            "el": "f-title",
+                            "col": { "text-center": true },
+                            "attr": { "label": "ENTITY MANAGER" }
+                        }
+                    ]
+                },
+                {
+                    "prop": "",
+                    "cols": [
+                        {
+                            "el": "v-autocomplete",
+                            "col": { "shrink": "true", "class": "shrink" },
+                            "attr": {
+                                "class": "flex-md-grow-0",
+                                "v-model": "sCategoryID",
+                                "label": "Danh mục",
+                                ":items": "dsCategory",
+                                "item-text": "CategoryName",
+                                "item-value": "CategoryID"
+                            },
+                            "w": "300"
+                        },
+                        {
+                            "el": "v-text-field",
+                            "attr": { "v-model": "sKeyword", "label": "Tìm kiếm", "clearable": "" },
+                            "col": "shrink",
+                            "w": "200"
+                        },
+                        {
+                            "_note": "TypeLoad — nút switch chế độ xem",
+                            "el": "f-button",
+                            "col": { "shrink": true },
+                            "attr": {
+                                ":checkvalid": false,
+                                "color": "warning",
+                                "label": "Bị từ chối",
+                                "icon-text": "mdi-cancel",
+                                ":action": [
+                                    { "TypeLoad": 2, "fTableTitle": "Danh sách bị từ chối" },
+                                    { "CALL": "getItemsDenied" }
+                                ]
+                            },
+                            "w": ""
+                        },
+                        { "el": "v-spacer", "attr": {} },
+                        {
+                            "_note": "Bulk action — thao tác trên sItemSelected",
+                            "el": "f-button",
+                            "col": { "v-if": "vueData.user.SystemRight>1", "shrink": true },
+                            "attr": {
+                                ":checkvalid": false,
+                                "color": "error",
+                                "label": "Xóa đã chọn",
+                                "icon-text": "mdi-delete-sweep",
+                                ":action": {
+                                    "CONFIRM": "Xóa tất cả các mục đã chọn?",
+                                    "CALL": "bulkDelete"
+                                }
+                            },
+                            "w": ""
+                        },
+                        {
+                            "el": "f-button",
+                            "col": { "v-if": "vueData.user.SystemRight==9", "shrink": true },
+                            "attr": {
+                                ":checkvalid": false,
+                                "color": "primary",
+                                "label": "Thêm mới",
+                                "icon-text": "mdi-plus",
+                                ":action": [
+                                    { "addNew": 1, "sID": "", "sName": "", "sEmail": "" },
+                                    { "dlInfo": true }
+                                ]
+                            },
+                            "w": ""
+                        }
+                    ]
+                },
+                {
+                    "prop": "",
+                    "cols": [
+                        {
+                            "el": "f-table",
+                            "col": { "v-if": "vueData.user.SystemRight>1" },
+                            "attr": {
+                                "_note_label": "Dynamic label từ TypeLoad state",
+                                ":label": "`${fTableTitle=='' ? 'Danh sách' : fTableTitle}`",
+                                ":fixed-header": true,
+                                ":items-per-page": 50,
+                                "_note_excel": "excel: true — nút xuất Excel",
+                                "excel": true,
+                                ":show-select": true,
+                                "v-model": "sItemSelected",
+                                ":items": "dsItems",
+                                "item-key": "ID",
+                                ":item-class": "item => item.IsBlocked>0 ? 'danger' : ''",
+                                ":disabled-update": "vueData.user.SystemRight!=9",
+                                ":headers": [
+                                    { "text": "ID", "value": "ID", "align": "center" },
+                                    { "text": "Tên", "value": "Name" },
+                                    {
+                                        "_note": "t-check — toggle boolean với action chain",
+                                        "text": "Kích hoạt",
+                                        "value": "Enable",
+                                        "align": "center",
+                                        "el": "t-check",
+                                        "attr": {
+                                            "on-icon": "mdi-check",
+                                            "off-icon": "mdi-lock",
+                                            ":action": [
+                                                { "API": "/EntitySetActive", "IN": { "ID": "item.ID" } },
+                                                { "dsItems": [] },
+                                                { "CALL": "getData" }
+                                            ]
+                                        }
+                                    },
+                                    {
+                                        "_note": "t-select — dropdown inline có CONFIRM",
+                                        "text": "Phân loại",
+                                        "value": "RightLevel",
+                                        "el": "t-select",
+                                        "width": "200px",
+                                        "attr": {
+                                            ":items": "vueData.dsRights",
+                                            "item-text": "Note",
+                                            "item-value": "Level",
+                                            ":action": [
+                                                {
+                                                    "CONFIRM": "Xác nhận thay đổi phân loại?",
+                                                    "API": "/EntityUpdateRight",
+                                                    "IN": { "ID": "item.ID", "Level": "item.RightLevel" },
+                                                    "CALLBACK": { "MESS": "Cập nhật thành công." }
+                                                }
+                                            ]
+                                        }
+                                    },
+                                    {
+                                        "_note": "v-chip-group — hiển thị mảng tags, click mở dialog",
+                                        "text": "Chức năng",
+                                        "value": "Functions",
+                                        "el": "v-chip-group",
+                                        "attr": { "column": true, "v-if": "item.Functions" },
+                                        "innerHTML": [
+                                            {
+                                                "el": "v-chip",
+                                                "attr": {
+                                                    ":small": true,
+                                                    "color": "primary",
+                                                    "outlined": "",
+                                                    "v-for": "fn in item.Functions",
+                                                    ":key": "fn.ID",
+                                                    "v-on:click": "vueData.dlRight = true; CALL(loadRight(item));"
+                                                },
+                                                "innerHTML": "<div>{{fn.Code}}-{{fn.Name}}</div>"
+                                            }
+                                        ]
+                                    },
+                                    {
+                                        "_note": "t-button — :color/:icon-text/:label động từ item data",
+                                        "text": "Sub-items",
+                                        "value": "SubCount",
+                                        "el": "t-button",
+                                        "align": "center",
+                                        "attr": {
+                                            ":color": "(item.SubCount > 0 ? 'primary' : 'red')",
+                                            ":icon-text": "`${item.SubCount > 0 ? 'mdi-check-bold' : 'mdi-lock'}`",
+                                            ":label": "item.SubCount",
+                                            ":action": [
+                                                { "dongChon": "item", "sID": "item.ID" },
+                                                { "CALL": "getRights" },
+                                                { "dlAssign": true }
+                                            ]
+                                        }
+                                    },
+                                    {
+                                        "_note": "v-icon — icon điều kiện",
+                                        "text": "Cảnh báo",
+                                        "value": "HasWarning",
+                                        "el": "v-icon",
+                                        "align": "center",
+                                        "attr": { "v-if": "item.HasWarning", "color": "red darken-2", "dense": "" },
+                                        "innerHTML": "mdi-alert-circle"
+                                    },
+                                    {
+                                        "_note": "t-link — text link trong cell, :url là expression, target là attr thường",
+                                        "el": "t-link",
+                                        "text": "Tên trang",
+                                        "value": "PageName",
+                                        "attr": {
+                                            ":url": "item.pageUrl",
+                                            "target": "_blank"
+                                        }
+                                    },
+                                    {
+                                        "_note": "t-menu — bind menuChucNang từ data",
+                                        "el": "t-menu",
+                                        "width": "150px",
+                                        "align": "center",
+                                        "text": "Thao tác",
+                                        "value": "Actions",
+                                        "attr": { ":items": "vueData.menuChucNang" }
+                                    }
+                                ],
+                                "_note_ufa": ":update-form-attr — {width: N} tùy chỉnh kích thước dialog form (mặc định auto)",
+                                ":update-form-attr": { "width": 700 },
+                                "_note_inline_crud": "update-form/update-api — inline add+edit không cần dialog riêng",
+                                ":update-form": [
+                                    {
+                                        "el": "v-text-field",
+                                        "attr": {
+                                            "_note": "v-if: dialogModel=='new' — chỉ hiện khi tạo mới",
+                                            "v-if": "dialogModel=='new'",
+                                            "v-model": "ID",
+                                            "label": "Mã"
+                                        }
+                                    },
+                                    { "el": "v-text-field", "attr": { "v-model": "Name", "label": "Tên" } },
+                                    { "el": "v-text-field", "attr": { "v-model": "Email", "label": "Email", ":required": false } }
+                                ],
+                                ":update-api": {
+                                    "_note_default_item": "default-item: giá trị mặc định khi tạo mới. Có thể dùng state expression để kế thừa context",
+                                    "default-item": {
+                                        "ID": "",
+                                        "Name": "",
+                                        "Email": "",
+                                        "_note_from_state": "Ví dụ kế thừa từ state: 'CategoryID': 'sCategoryID', 'Framework': 'dsProject[0].Framework'"
+                                    },
+                                    "new": {
+                                        "API": "/EntityInsert",
+                                        "IN": { "ID": "item.ID", "Name": "item.Name", "Email": "item.Email" },
+                                        "CALLBACK": { "CALL": "getData" }
+                                    },
+                                    "edit": {
+                                        "_note_row": "$row trong IN — dùng '$row' để truyền toàn bộ row object thay vì map từng field",
+                                        "CONFIRM": "Xác nhận cập nhật?",
+                                        "API": "/EntityUpdate",
+                                        "IN": { "ID": "item.ID", "Name": "item.Name", "Email": "item.Email" },
+                                        "_note_row_alt": "Hoặc dùng: 'IN': { 'rowData': '$row' } — server nhận toàn bộ object",
+                                        "CALLBACK": { "CALL": "getData" }
+                                    }
+                                }
+                            },
+                            "w": 12
+                        }
+                    ]
+                }
+            ]
+        },
+
+        {
+            "_note": "PATTERN: advanced toolbar — row-prop-object, f-menu inline :items, f-button :href, openWindow+button",
+            "prop": "fluid grid-list-md",
+            "rows": [
+                {
+                    "_note_row_prop_object": "Row prop dạng object — v-if ẩn cả row, class cho alignment",
+                    "prop": { "v-if": "showAdvanced && itemSelected[0]", "class": "justify-end" },
+                    "cols": [
+                        {
+                            "_note": "f-button external link — :href + target thay vì :action",
+                            "el": "f-button",
+                            "col": { "class": "shrink" },
+                            "attr": {
+                                "label": "CDN Files",
+                                "icon-text": "mdi-cloud-arrow-up-outline",
+                                "outlined": "",
+                                "text": "",
+                                ":href": "`https://cdn.example.vn/?folder=${pid}`",
+                                "target": "_blank"
+                            }
+                        },
+                        {
+                            "_note": "f-menu inline :items — items định nghĩa trực tiếp, không qua menuChucNang. Dùng khi menu chỉ xuất hiện ở 1 chỗ",
+                            "el": "f-menu",
+                            "col": { "class": "shrink" },
+                            "attr": {
+                                "label": "Cài đặt",
+                                "icon-text": "mdi-cog",
+                                ":open-on-hover": true,
+                                ":items": [
+                                    {
+                                        "text": "`Import",
+                                        "icon-text": "`mdi-import",
+                                        "action": {
+                                            "FUN": "openWindow",
+                                            "IN": {
+                                                "id": "`WinImport",
+                                                "title": "`Import files",
+                                                "url": "`/import?pid={{pid}}"
+                                            }
+                                        }
+                                    },
+                                    {
+                                        "_note": "item dạng external link — href + target thay vì action",
+                                        "text": "`File CDN",
+                                        "icon-text": "`mdi-folder-multiple",
+                                        "href": "`https://cdn.example.vn/?folder={{pid}}",
+                                        "target": "`_blank"
+                                    },
+                                    {
+                                        "text": "`Chỉnh sửa cấu hình",
+                                        "icon-text": "`mdi-cog-outline",
+                                        "action": {
+                                            "FUN": "openWindow",
+                                            "IN": {
+                                                "id": "`WinSettings",
+                                                "title": "`Cài đặt: {{pid}}",
+                                                "url": "`/settings?pid={{pid}}",
+                                                "_note_button": "button: custom Save button trong window header, ctrlhotkey: 83 = Ctrl+S",
+                                                "button": {
+                                                    "label": "Save",
+                                                    "icon-text": "mdi-cloud-upload-outline",
+                                                    "ctrlhotkey": 83,
+                                                    "action": { "#WinSettings": { "CALL": "cmdSAVE" } }
+                                                },
+                                                "onclose": { "pid": null }
+                                            }
+                                        }
+                                    }
+                                ]
+                            }
+                        }
+                    ]
+                }
+            ]
+        },
+
+        {
+            "_note": "DIALOG 1 — addNew flag pattern: tạo mới vs cập nhật trong cùng dialog",
+            "prop": "hidden-container",
+            "rows": [
+                {
+                    "prop": "",
+                    "cols": [
+                        {
+                            "el": "v-dialog",
+                            "col": {},
+                            "attr": { "v-model": "dlInfo", "width": 650 },
+                            "innerHTML": [
+                                {
+                                    "el": "v-card",
+                                    "attr": {},
+                                    "innerHTML": [
+                                        {
+                                            "el": "v-toolbar",
+                                            "attr": { "dense": "", "flat": "" },
+                                            "innerHTML": [
+                                                { "el": "v-toolbar-title", "attr": {}, "innerHTML": "Thông tin chi tiết" },
+                                                { "el": "v-spacer", "attr": {} },
+                                                { "el": "v-btn", "innerHTML": "<v-icon>mdi-close</v-icon>", "attr": { "icon": "", "v-on:click": "vueData.dlInfo = false" } }
+                                            ],
+                                            "w": 12
+                                        },
+                                        {
+                                            "el": "v-container",
+                                            "attr": { "class": "grid-list-md px-4" },
+                                            "innerHTML": [
+                                                {
+                                                    "el": "v-layout", "w": 12, "attr": {},
+                                                    "innerHTML": [
+                                                        { "el": "div", "attr": { "class": "mt-2" }, "innerHTML": "Mã", "w": 3 },
+                                                        {
+                                                            "el": "v-text-field", "col": {},
+                                                            "attr": {
+                                                                "class": "flex-md-grow-0 ml-2",
+                                                                "_note": ":disabled khi edit (addNew==0), nhập được khi tạo mới (addNew==1)",
+                                                                ":disabled": "addNew==0",
+                                                                "v-model": "sID",
+                                                                ":required": true
+                                                            },
+                                                            "w": 9
+                                                        }
+                                                    ]
+                                                },
+                                                {
+                                                    "el": "v-layout", "w": 12, "attr": {},
+                                                    "innerHTML": [
+                                                        { "el": "div", "attr": { "class": "mt-2" }, "innerHTML": "Tên", "w": 3 },
+                                                        { "el": "v-text-field", "col": {}, "attr": { "class": "flex-md-grow-0 ml-2", "v-model": "sName", ":required": true }, "w": 9 }
+                                                    ]
+                                                },
+                                                {
+                                                    "el": "v-layout", "w": 12, "attr": {},
+                                                    "innerHTML": [
+                                                        {
+                                                            "_note": "v-switch — toggle hiện/ẩn field phụ",
+                                                            "el": "v-switch", "col": {},
+                                                            "attr": { "class": "flex-md-grow-0 ml-2", "v-model": "showExtra", "label": "Cài đặt thêm" },
+                                                            "w": "12"
+                                                        }
+                                                    ]
+                                                },
+                                                {
+                                                    "el": "v-layout", "w": 12, "attr": { "v-if": "showExtra" },
+                                                    "innerHTML": [
+                                                        { "el": "div", "attr": { "class": "mt-2" }, "innerHTML": "Ghi chú", "w": 3 },
+                                                        { "el": "v-textarea", "col": {}, "attr": { "class": "flex-md-grow-0 ml-2", "v-model": "sNote", ":rows": 2 }, "w": 9 }
+                                                    ]
+                                                }
+                                            ]
+                                        },
+                                        {
+                                            "el": "v-card-actions", "w": 12, "attr": {},
+                                            "innerHTML": [
+                                                { "el": "v-spacer", "attr": {} },
+                                                {
+                                                    "el": "f-button",
+                                                    "attr": {
+                                                        ":checkvalid": true, "color": "primary", "label": "Lưu", "icon-text": "mdi-content-save",
+                                                        ":action": {
+                                                            "API": "/EntitySave",
+                                                            "IN": { "Type": "addNew", "ID": "sID", "Name": "sName", "Note": "sNote" },
+                                                            "CALLBACK": [
+                                                                { "MESS": "Lưu thành công." },
+                                                                { "dlInfo": false },
+                                                                { "CALL": "getData" }
+                                                            ]
+                                                        }
+                                                    }
+                                                }
+                                            ]
+                                        }
+                                    ]
+                                }
+                            ],
+                            "w": ""
+                        }
+                    ]
+                }
+            ]
+        },
+
+        {
+            "_note": "DIALOG 2 — v-checkbox v-for: checkbox list động cho phân quyền hàng loạt",
+            "prop": "hidden-container",
+            "rows": [
+                {
+                    "prop": "",
+                    "cols": [
+                        {
+                            "el": "v-dialog",
+                            "col": {},
+                            "attr": { "v-model": "dlRight", "width": 400 },
+                            "innerHTML": [
+                                {
+                                    "el": "v-card",
+                                    "attr": { "style": "padding: 0px;" },
+                                    "innerHTML": [
+                                        {
+                                            "el": "v-toolbar",
+                                            "attr": { "dense": "", "flat": "" },
+                                            "innerHTML": [
+                                                { "el": "v-toolbar-title", "attr": {}, "innerHTML": "Phân quyền chức năng" },
+                                                { "el": "v-spacer", "attr": {} },
+                                                { "el": "v-btn", "innerHTML": "<v-icon>mdi-close</v-icon>", "attr": { "icon": "", "v-on:click": "vueData.dlRight = false" } }
+                                            ],
+                                            "w": 12
+                                        },
+                                        {
+                                            "el": "v-card-text", "attr": {},
+                                            "innerHTML": [
+                                                {
+                                                    "el": "v-layout",
+                                                    "attr": { "class": "fluid row justify-center grid-list-lg fill-height mt-3" },
+                                                    "innerHTML": [
+                                                        {
+                                                            "_note": "v-checkbox v-for — v-model là mảng string ID, check = auto CALL saveRights",
+                                                            "el": "div",
+                                                            "attr": { "v-for": "r in vueData.dsRights", ":key": "r.ID" },
+                                                            "innerHTML": [
+                                                                {
+                                                                    "el": "v-checkbox",
+                                                                    "attr": {
+                                                                        "color": "primary",
+                                                                        "v-model": "sRightSelected",
+                                                                        ":value": "`${r.ID}`",
+                                                                        ":label": "`${r.Code} - ${r.Name}`",
+                                                                        "v-on:click": "CALL(saveRights)"
+                                                                    }
+                                                                }
+                                                            ]
+                                                        }
+                                                    ]
+                                                }
+                                            ]
+                                        }
+                                    ]
+                                }
+                            ]
+                        }
+                    ]
+                }
+            ]
+        },
+
+        {
+            "_note": "DIALOG — dual-toolbar: v-toolbar thứ 2 làm filter bar trong dialog + f-table với show-select",
+            "prop": "hidden-container",
+            "rows": [{
+                "prop": "",
+                "cols": [{
+                    "el": "v-dialog",
+                    "col": {},
+                    "attr": { "v-model": "dlAddUser", "width": 800, "max-height": 800, ":scrollable": true },
+                    "innerHTML": [{
+                        "el": "v-card",
+                        "attr": { "style": "padding: 0px;" },
+                        "innerHTML": [
+                            {
+                                "el": "v-toolbar", "attr": { "dense": "", "flat": "" }, "w": 12,
+                                "innerHTML": [
+                                    { "el": "v-toolbar-title", "attr": {}, "innerHTML": "Thêm users" },
+                                    { "el": "v-spacer" },
+                                    { "el": "v-btn", "innerHTML": "<v-icon>mdi-close</v-icon>", "attr": { "icon": "", "v-on:click": "vueData.dlAddUser = false" } }
+                                ]
+                            },
+                            {
+                                "_note": "v-toolbar thứ 2 — filter bar trong dialog",
+                                "el": "v-toolbar", "attr": { "dense": "", "flat": "" }, "w": 12,
+                                "innerHTML": [
+                                    {
+                                        "el": "v-select", "attr": {
+                                            "style": "width:300px", "v-model": "sDepartment",
+                                            "label": "Department", ":items": "dsDepartment",
+                                            "item-text": "DepartmentName", "item-value": "DepartmentID",
+                                            ":required": false
+                                        }
+                                    },
+                                    {
+                                        "el": "f-button", "attr": {
+                                            ":checkvalid": false, "color": "primary", "icon-text": "mdi-magnify",
+                                            ":action": [{ "CALL": "getUserByDept" }]
+                                        }
+                                    }
+                                ]
+                            },
+                            {
+                                "el": "v-card-text", "attr": { "class": "px-4" },
+                                "innerHTML": [{
+                                    "_note": "f-table trong dialog — max-height thay vì :height",
+                                    "el": "f-table",
+                                    "attr": {
+                                        "label": "Danh sách users", "item-key": "UserID",
+                                        ":items": "dsUserDept", ":show-select": true, "v-model": "sUserDeptSelected",
+                                        ":items-per-page": -1, ":hide-default-footer": true, "max-height": 400,
+                                        ":headers": [
+                                            { "text": "UserID", "value": "UserID" },
+                                            { "text": "Username", "value": "UserName" },
+                                            { "text": "Fullname", "value": "FullName" }
+                                        ]
+                                    }, "w": 12
+                                }]
+                            },
+                            {
+                                "el": "v-card-actions", "attr": {}, "w": 12,
+                                "innerHTML": [
+                                    { "el": "v-spacer", "attr": {} },
+                                    {
+                                        "el": "f-button", "attr": {
+                                            ":checkvalid": false, "color": "primary", "label": "Save",
+                                            "icon-text": "mdi-content-save",
+                                            "_note_callback": "reset sUserDeptSelected + đóng dialog trong cùng 1 CALLBACK step",
+                                            ":action": {
+                                                "CALL": "addUsers"
+                                            }
+                                        }
+                                    }
+                                ]
+                            }
+                        ]
+                    }]
+                }]
+            }]
+        },
+
+        {
+            "_note": "DIALOG 3 — Nested IF/THEN/ELSE trong CALLBACK: routing theo TypeLoad sau khi lưu",
+            "prop": "hidden-container",
+            "rows": [
+                {
+                    "prop": "",
+                    "cols": [
+                        {
+                            "el": "v-dialog",
+                            "col": {},
+                            "attr": { "v-model": "dlAssign", "width": 600, ":scrollable": true },
+                            "innerHTML": [
+                                {
+                                    "el": "v-card",
+                                    "attr": { "style": "padding: 0px;" },
+                                    "innerHTML": [
+                                        {
+                                            "el": "v-toolbar",
+                                            "attr": { "dense": "", "flat": "" },
+                                            "innerHTML": [
+                                                { "el": "v-toolbar-title", "attr": {}, "innerHTML": "Gán sub-items" },
+                                                { "el": "v-spacer" },
+                                                { "el": "v-btn", "innerHTML": "<v-icon>mdi-close</v-icon>", "attr": { "icon": "", "v-on:click": "vueData.dlAssign = false" } }
+                                            ],
+                                            "w": 12
+                                        },
+                                        {
+                                            "el": "v-card-actions", "attr": {}, "w": 12,
+                                            "innerHTML": [
+                                                { "el": "v-spacer", "attr": {} },
+                                                {
+                                                    "el": "f-button",
+                                                    "attr": {
+                                                        ":checkvalid": false, "color": "primary", "label": "Lưu", "icon-text": "mdi-content-save",
+                                                        ":action": {
+                                                            "API": "/AssignSave",
+                                                            "IN": { "ID": "sID", "SubList": "sRightSelected" },
+                                                            "CALLBACK": [
+                                                                { "dlAssign": false },
+                                                                {
+                                                                    "_note": "Nested IF/THEN/ELSE — reload đúng dataset theo TypeLoad hiện tại",
+                                                                    "IF": "TypeLoad==1",
+                                                                    "THEN": { "CALL": "getData" },
+                                                                    "ELSE": {
+                                                                        "IF": "TypeLoad==2",
+                                                                        "THEN": { "CALL": "getItemsDenied" },
+                                                                        "ELSE": { "CALL": "getItemsInactive" }
+                                                                    }
+                                                                }
+                                                            ]
+                                                        }
+                                                    }
+                                                }
+                                            ]
+                                        }
+                                    ]
+                                }
+                            ],
+                            "w": ""
+                        }
+                    ]
+                }
+            ]
+        }
+    ],
+
+    "set": {}
+}

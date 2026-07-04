@@ -302,7 +302,6 @@ var defaultControlAttr = {
             "elevation": "1",
             ":depressed": true,
             "color": "primary",
-            "label": "Load Excel",
         },
     },
     "f-google-login": {
@@ -2972,10 +2971,35 @@ Vue.component('f-pdfmake', {
 
 //===========================================================================================
 Vue.component('f-excel-reader', {
-    props: ['dateFormat', "headerFormat", "rawFormat", "action", "label"],
+    props: {
+        dateFormat: {
+            type: String,
+            default: null
+        },    
+        headerFormat: {
+            type: String,
+            default: null
+        },    
+        rawFormat: {
+            type: String,
+            default: null
+        },    
+        action: {
+            type: Object,
+            default: null
+        },
+        label: {
+            type: String,
+            default: 'Load Excel'
+        },
+        iconText: {
+            type: String,
+            default: 'mdi-grid'
+        },
+    },    
     template: `
         <div>
-            <v-btn v-bind="$attrs" :loading="isSelecting" @click="onButtonClick" style="min-width: 100px;" ><v-icon left>mdi-grid</v-icon>{{label}}</v-btn>
+            <v-btn v-bind="$attrs" :loading="isSelecting" @click="onButtonClick" style="min-width: 100px;" ><v-icon left>{{iconText}}</v-icon>{{label}}</v-btn>
             <input ref="uploader" style="display:none;" type="file" multiple="false" :accept="SheetJSFT" @change="onchange" onclick="this.value=null;">
         </div>
     `,

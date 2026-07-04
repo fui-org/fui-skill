@@ -88,25 +88,14 @@ Components are registered using an **upsert pattern**:
 
 > **Rule**: Never manually create or modify `comID`. It is server-generated.
 
-## 6. Vue Template Syntax Constraints
+## 6. Vue Component Design
 
-Inside `<template>` of `.vue` files:
-
--   **No template strings (backticks)**: Use string concatenation instead.
--   **Never use backticks inside `<template>`**: This applies to bindings, labels, class expressions, and inline text assembly inside Vue templates.
-    ```html
-    <!-- ❌ WRONG -->
-    :label="`Total (${items.length})`"
-    <!-- ✅ CORRECT -->
-    :label="'Total (' + items.length + ')'"
-    ```
--   **No arrow functions**: Use `function()` syntax for broader compatibility.
-    ```js
-    // ❌ WRONG
-    props: { items: { default: () => [] } }
-    // ✅ CORRECT
-    props: { items: { default: function() { return [] } } }
-    ```
+Xem toàn bộ quy tắc thiết kế `uc-*.vue` component tại [component-design.md](component-design.md), bao gồm:
+- Không dùng `components: {}` để đăng ký
+- Không dùng `<style>` trong file `.vue`
+- Không dùng backtick trong `<template>`
+- Không dùng `v-dialog` — dùng cấu trúc `v-overlay` thay thế
+- Cấu trúc bắt buộc cho dialog component
 
 ## 7. Complex Module Architecture
 

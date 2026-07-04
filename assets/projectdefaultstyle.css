@@ -1,39 +1,67 @@
-.ga-1{
-    gap: 4px;
+.space-x-1>*:not(:first-child) {
+    margin-left: 0.25rem !important;
 }
-.ga-2{
-    gap: 8px;
+
+.space-x-2>*:not(:first-child) {
+    margin-left: 0.5rem !important;
 }
-.ga-3{
-    gap: 12px;
+
+.space-x-3>*:not(:first-child) {
+    margin-left: 0.75rem !important;
 }
-.ga-4{
-    gap: 16px;
+
+.space-x-4>*:not(:first-child) {
+    margin-left: 1rem !important;
 }
-.ga-5{
-    gap: 20px;
+
+.space-x-5>*:not(:first-child) {
+    margin-left: 1.25rem !important;
 }
-.ga-6{
-    gap: 24px;
+
+.space-x-6>*:not(:first-child) {
+    margin-left: 1.5rem !important;
 }
-.ga-7{
-    gap: 28px;
+
+.space-x-7>*:not(:first-child) {
+    margin-left: 1.75rem !important;
 }
-.ga-8{
-    gap: 32px;
+
+.space-x-8>*:not(:first-child) {
+    margin-left: 2rem !important;
 }
-.ga-9{
-    gap: 36px;
+
+.space-y-1>*:not(:first-child) {
+    margin-top: 0.25rem !important;
 }
-.ga-10{
-    gap: 40px;
+
+.space-y-2>*:not(:first-child) {
+    margin-top: 0.5rem !important;
 }
-.ga-11{
-    gap: 44px;
+
+.space-y-3>*:not(:first-child) {
+    margin-top: 0.75rem !important;
 }
-.ga-12{
-    gap: 48px;
+
+.space-y-4>*:not(:first-child) {
+    margin-top: 1rem !important;
 }
+
+.space-y-5>*:not(:first-child) {
+    margin-top: 1.25rem !important;
+}
+
+.space-y-6>*:not(:first-child) {
+    margin-top: 1.5rem !important;
+}
+
+.space-y-7>*:not(:first-child) {
+    margin-top: 1.75rem !important;
+}
+
+.space-y-8>*:not(:first-child) {
+    margin-top: 2rem !important;
+}
+
 /* ------------------------------------------------------------------------ */
 .mw-200 {
     max-width: 200px;
@@ -82,8 +110,7 @@
 .hidden-container{
     display: none;
 }
-
-/* ============================================================= */
+/* ========== for FUI home page ================================================= */
 html {
     overflow-y: auto;
     font-family: Roboto, sans-serif;
@@ -108,23 +135,183 @@ input[type=number] {
 }
 
 /* ================================================================================================= */
+.v-list-item__spacer{
+    width: 10px !important;
+}
+
+.v-btn {
+    font-weight: 400;
+}
+
+.v-input--density-compact{
+    --v-input-control-height:36px;
+    --v-input-padding-top: 6px;
+}
+
+.v-input--density-compact .v-field--no-label, .v-input--density-compact .v-field--single-line, .v-input--density-compact .v-field--variant-outlined {
+    --v-field-padding-bottom: 6px;
+}
+
+.v-alert--density-compact {
+    padding-bottom: 6px;
+    padding-top: 6px;
+}
+
+.v-textarea .v-field__input {
+    height: auto;
+}
+
+.v-container {
+    padding: 12px;
+}
+
+/* ========================= grid ======================================================================== */
+
+.v-container.grid-list-none .v-row .v-col {
+    padding: 0px
+}
+
+.v-container.grid-list-none .v-row:only-child {
+    margin: 0px
+}
+
+.v-container.grid-list-none .v-row:not(:only-child) {
+    margin: auto 0px
+}
+
+.v-container.grid-list-none :not(:only-child) .v-row:first-child {
+    margin-top: 0px
+}
+
+.v-container.grid-list-none :not(:only-child) .v-row:last-child {
+    margin-bottom: 0px
+}
+
+.v-container.grid-list-xs .v-row .v-col {
+    padding: 1px
+}
+
+.v-container.grid-list-xs .v-row:only-child {
+    margin: -1px
+}
+
+.v-container.grid-list-xs .v-row:not(:only-child) {
+    margin: auto -1px
+}
+
+.v-container.grid-list-xs :not(:only-child) .v-row:first-child {
+    margin-top: -1px
+}
+
+.v-container.grid-list-xs :not(:only-child) .v-row:last-child {
+    margin-bottom: -1px
+}
+
+.v-container.grid-list-sm .v-row .v-col {
+    padding: 2px
+}
+
+.v-container.grid-list-sm .v-row:only-child {
+    margin: -2px
+}
+
+.v-container.grid-list-sm .v-row:not(:only-child) {
+    margin: auto -2px
+}
+
+.v-container.grid-list-sm :not(:only-child) .v-row:first-child {
+    margin-top: -2px
+}
+
+.v-container.grid-list-sm :not(:only-child) .v-row:last-child {
+    margin-bottom: -2px
+}
+
+.v-container.grid-list-md .v-row .v-col {
+    padding: 4px
+}
+
+.v-container.grid-list-md .v-row:only-child {
+    margin: -4px
+}
+
+.v-container.grid-list-md .v-row:not(:only-child) {
+    margin: auto -4px
+}
+
+.v-container.grid-list-md :not(:only-child) .v-row:first-child {
+    margin-top: -4px
+}
+
+.v-container.grid-list-md :not(:only-child) .v-row:last-child {
+    margin-bottom: -4px
+}
+
+.v-container.grid-list-lg .v-row .v-col {
+    padding: 8px
+}
+
+.v-container.grid-list-lg .v-row:only-child {
+    margin: -8px
+}
+
+.v-container.grid-list-lg .v-row:not(:only-child) {
+    margin: auto -8px
+}
+
+.v-container.grid-list-lg :not(:only-child) .v-row:first-child {
+    margin-top: -8px
+}
+
+.v-container.grid-list-lg :not(:only-child) .v-row:last-child {
+    margin-bottom: -8px
+}
+
+.v-container.grid-list-xl .v-row .v-col {
+    padding: 12px
+}
+
+.v-container.grid-list-xl .v-row:only-child {
+    margin: -12px
+}
+
+.v-container.grid-list-xl .v-row:not(:only-child) {
+    margin: auto -12px
+}
+
+.v-container.grid-list-xl :not(:only-child) .v-row:first-child {
+    margin-top: -12px
+}
+
+.v-container.grid-list-xl :not(:only-child) .v-row:last-child {
+    margin-bottom: -12px
+}
+
+/* ----------------------------------------------------------------- */
+.grow {
+    flex-grow: 1;
+    flex-shrink: 0;
+    flex-basis: content;
+}
+
+.shrink {
+    flex-grow: 0;
+    flex-shrink: 1;
+    flex-basis: content;
+}
+
+/* ================================================================================================= */
 /* json ace_editor  */
+
 .ace_editor.ace-jsoneditor {
-    font-size: 0.9em !important;
+    font-size: 1em !important;
+    line-height: 1.5em !important
 }
 
 .jsoneditor-poweredBy {
     display: none;
 }
 
-.jsoneditor {
-    border: none !important;
-}
-
-.jsoneditor-menu {
-    background-color: #1976d2 !important;
-    border: none !important;
-}
 
 /* jconfirm  */
 @media only screen and (min-width: 600px) {
@@ -147,7 +334,6 @@ input[type=number] {
 
 .jconfirm .jconfirm-box-container {
     margin: auto;
-    max-width: none;
 }
 
 .jconfirm .jconfirm-box .jconfirm-buttons>button {
@@ -159,7 +345,7 @@ input[type=number] {
 .jconfirm.jconfirm-white .jconfirm-box .jconfirm-title-c .jconfirm-icon-c,
 .jconfirm.jconfirm-light .jconfirm-box .jconfirm-title-c .jconfirm-icon-c {
     font-size: 2.9em !important;
-    margin: 0 0 15px 0 !important;
+    margin: 0 !important;
 }
 
 .jconfirm .jconfirm-box div.jconfirm-title-c {
@@ -184,160 +370,43 @@ input[type=number] {
     font-size: initial;
 }
 
-
-/* =========== menu for mobile =================================================== */
-@media only screen and (max-width: 959px) {
-    .v-application .hidden-sm-and-down {
-        display: none !important;
-    }
-}
-
-
-/*================== Custom style ===================================================*/
-.v-text-field--filled.v-input--dense.v-text-field--outlined.v-text-field--filled>.v-input__control>.v-input__slot,
-.v-text-field--filled.v-input--dense.v-text-field--outlined>.v-input__control>.v-input__slot,
-.v-text-field--filled.v-input--dense.v-text-field--single-line>.v-input__control>.v-input__slot,
-.v-text-field--full-width.v-input--dense.v-text-field--outlined.v-text-field--filled>.v-input__control>.v-input__slot,
-.v-text-field--full-width.v-input--dense.v-text-field--outlined>.v-input__control>.v-input__slot,
-.v-text-field--full-width.v-input--dense.v-text-field--single-line>.v-input__control>.v-input__slot,
-.v-text-field--outlined.v-input--dense.v-text-field--outlined.v-text-field--filled>.v-input__control>.v-input__slot,
-.v-text-field--outlined.v-input--dense.v-text-field--outlined>.v-input__control>.v-input__slot,
-.v-text-field--outlined.v-input--dense.v-text-field--single-line>.v-input__control>.v-input__slot {
-    min-height: 36px;
-}
-
-.v-select.v-text-field--outlined:not(.v-text-field--single-line).v-input--dense .v-select__selections {
-    padding: 0px 0;
-}
-
-.v-text-field--enclosed.v-input--dense:not(.v-text-field--solo).v-text-field--outlined .v-input__append-inner,
-.v-text-field--enclosed.v-input--dense:not(.v-text-field--solo).v-text-field--outlined .v-input__append-outer,
-.v-text-field--enclosed.v-input--dense:not(.v-text-field--solo).v-text-field--outlined .v-input__prepend-inner,
-.v-text-field--enclosed.v-input--dense:not(.v-text-field--solo).v-text-field--outlined .v-input__prepend-outer,
-.v-text-field--full-width.v-input--dense:not(.v-text-field--solo).v-text-field--outlined .v-input__append-inner,
-.v-text-field--full-width.v-input--dense:not(.v-text-field--solo).v-text-field--outlined .v-input__append-outer,
-.v-text-field--full-width.v-input--dense:not(.v-text-field--solo).v-text-field--outlined .v-input__prepend-inner,
-.v-text-field--full-width.v-input--dense:not(.v-text-field--solo).v-text-field--outlined .v-input__prepend-outer {
-    margin-top: 6px;
-}
-.v-text-field--outlined.v-input--dense .v-label {
-    top: 8px;
-}
-
-.v-text-field input {
-    padding: 9px 0 7px 0;
-}
-
-.v-btn {
-    font-weight: 400;
-}
-
-/*=================== v-data-table ======================================================= */
-.v-data-table>.v-data-table__wrapper>table>tbody>tr>td,
-.v-data-table>.v-data-table__wrapper>table>tbody>tr>th,
-.v-data-table>.v-data-table__wrapper>table>tfoot>tr>td,
-.v-data-table>.v-data-table__wrapper>table>tfoot>tr>th,
-.v-data-table>.v-data-table__wrapper>table>thead>tr>td,
-.v-data-table>.v-data-table__wrapper>table>thead>tr>th {
-    /* padding: 0 12px; */
-}
-
-.v-select__selection--comma,
-.theme--light.v-data-table thead tr th,
-.theme--light.v-data-table,
-.theme--light.v-input input {
-    /* color: #000 !important; */
-    font-weight: 400;
-}
-
-.theme--light.v-data-table thead tr th {
-    font-size: .85rem !important;
-    font-weight: 500;
-    color: #505050 !important;
-    height: 36px !important;
-}
-
-.v-data-table .v-text-field>.v-input__control>.v-input__slot:before {
-    border-width: 0 0 0 0 !important;
-}
-
-.v-data-table .v-data-table__wrapper .v-input {
-    font-size: inherit !important;
-}
-
+/* =================================================================================================== */
 .tTable {
-    border-top: thin solid rgba(0, 0, 0, .08) !important;
+    border-top: thin solid rgba(0, 0, 0, .12) !important;
+    border-radius: 0;
 }
 
-.tTable table th {
-    white-space: nowrap !important;
-    background-color: #f9f9f9 !important;
-    border-bottom: thin solid rgba(0, 0, 0, .08) !important;
+.tTable .divider {
+    border-right: 1px solid rgba(0, 0, 0, .12);
 }
 
-.tTable table td {
-    border-bottom: thin solid rgba(0, 0, 0, .08) !important;
-}
-
-.theme--light.v-data-table .v-data-footer {
-    border-top: none !important;
-}
-
-.theme--light.v-data-table .v-data-table__divider {
-    border-right: thin solid rgba(0, 0, 0, .08) !important;
-}
-
-.tTable table th .v-icon.v-data-table-header__icon {
-    display: none;
-}
-
-.tTable table th.sortable.active .v-icon.v-data-table-header__icon {
-    display: inline-flex;
-}
-
-.tTable tbody tr:hover {
-    background-color: #f5f5f5 !important;
-}
-
-.tTableNoHover tbody tr:hover {
-    background: transparent !important;
-}
-
-.v-data-table .v-data-table-header-mobile {
-    display: none !important;
-}
-
-.v-data-table .v-data-table__mobile-row {
-    min-height: 34px;
-    height: 34px !important;
-}
 
 /* ===================================================================================================
 =============== scrollbar Style ============================================================================
 ===================================================================================================  */
-.fpScrollbar {
+.fpScrollbar, .v-navigation-drawer__content {
     overflow-y: auto;
 }
 
-.fpScrollbar::-webkit-scrollbar {
+.fpScrollbar::-webkit-scrollbar, .v-navigation-drawer__content::-webkit-scrollbar {
     width: 6px;
 }
 
 /* Track */
-.fpScrollbar::-webkit-scrollbar-track {
+.fpScrollbar::-webkit-scrollbar-track,.v-navigation-drawer__content::-webkit-scrollbar-track {
     background: #f1f1f1;
 
 }
 
 /* Handle */
-.fpScrollbar::-webkit-scrollbar-thumb {
-    background: #888;
+.fpScrollbar::-webkit-scrollbar-thumb,.v-navigation-drawer__content::-webkit-scrollbar-thumb {
+    background: #bbb;
     border-radius: 4px;
 }
 
 /* Handle on hover */
-.fpScrollbar::-webkit-scrollbar-thumb:hover {
-    background: #555;
+.fpScrollbar::-webkit-scrollbar-thumb:hover, .v-navigation-drawer__content::-webkit-scrollbar-thumb:hover {
+    background: #bbb;
 }
 
 /* ===================================================================================================

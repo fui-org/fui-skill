@@ -126,6 +126,7 @@ Finds an item in an array matching a value.
 Prepends the API domain if the URL is relative.
 - **Parameters:** `url` (String)
 - **Returns:** Absolute URL.
+- **Lưu ý:** Hàm này được `ajaxCALL` gọi nội bộ — không cần gọi thủ công.
 
 ### stringAttrToJson(str, removeVueEvent)
 Parses a string of HTML attributes into a JSON object.
@@ -141,13 +142,21 @@ Recursively parses `json_data:` prefixed string values in an object structure in
   - `level` (Number): Recursion depth.
 
 ### ajaxCALL(URL, DATA, callBack, errorCallBack, header)
-Performs an AJAX POST request.
+Performs an AJAX POST request. URL không cần ghi đầy đủ domain — chỉ cần truyền path của API, hệ thống tự ghép domain thông qua `fixURL` trước khi gọi.
 - **Parameters:**
-  - `URL` (String): Endpoint URL.
+  - `URL` (String): Path của API, ví dụ `"/SM_Modules_ManagerSelect"`. Không cần ghép domain đầy đủ như `https://api.fui.vn/...`
   - `DATA` (Object): Request payload.
   - `callBack` (Function): Success callback.
   - `errorCallBack` (Function): Error callback.
   - `header` (Object): Custom headers.
+- **Ví dụ:**
+  ```js
+  // Đúng — chỉ cần path
+  ajaxCALL("/SM_Modules_ManagerSelect", data, callback);
+
+  // Sai — không cần ghép domain thủ công
+  ajaxCALL("https://api.fui.vn/fp//SM_Modules_ManagerSelect", data, callback);
+  ```
 
 ### capacityText(numb)
 Formats a number of bytes into Kb or Mb.
