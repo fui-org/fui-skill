@@ -186,3 +186,11 @@ Creates a transparent version of a color.
 ### jsonToExcel(Obj)
 Exports JSON data to an Excel file using `ExcelJS`.
 - **Parameters:** `Obj` (Object) - { data, filename, worksheet, sheets }
+
+## Security Considerations
+
+When using the utilities documented above, please adhere to the following secure coding practices to prevent vulnerabilities:
+
+1. **Input Validation**: Ensure all data provided to functions like `openWindow`, `redirect`, and `ajaxCALL` is strictly validated and sanitized to prevent XSS or unvalidated redirects.
+2. **postMessage Security**: When using `windowSendMessage` and listening for messages, always verify the `origin` of incoming messages against a whitelist of trusted domains. Do not accept messages from wildcard (`*`) or unknown origins.
+3. **Safe Script Loading**: The `Loader` class and `loadScripts` should only be used to load scripts from trusted, explicitly whitelisted domains. Do not pass untrusted user input directly into script URLs.

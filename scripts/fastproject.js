@@ -176,6 +176,26 @@ function createModuleDom() {
     window.onmessage = function (event) {
         var evt = event || window.event;
 
+        // Validate origin for security
+        var origin = evt.origin || (evt.originalEvent && evt.originalEvent.origin);
+        if (origin && origin !== window.location.origin) {
+            var isTrusted = false;
+            var trustedDomains = ['.fui.vn', window.location.host];
+            for (var i = 0; i < trustedDomains.length; i++) {
+                if (origin.endsWith(trustedDomains[i])) {
+                    isTrusted = true;
+                    break;
+                }
+            }
+            if (!isTrusted && vueData.v_Set && vueData.v_Set.allowedOrigins && vueData.v_Set.allowedOrigins.includes(origin)) {
+                isTrusted = true;
+            }
+            if (!isTrusted && origin !== "null" && origin !== "") {
+                console.warn("Blocked cross-frame message from untrusted origin:", origin);
+                return;
+            }
+        }
+
         //console.log("on message", evt.data)
         switch (evt.data.cmd) {
             case "setData":
@@ -550,6 +570,13 @@ function getVueData(key, src) {
             if ((/^{{.*}}$/gm).test(key)) key = key.replace(/^{{|}}$/gm, ''); // bo cap {{ }} dau va cuoi
 
             try {
+                // Sanitize key to prevent arbitrary harmful code execution if possible, 
+                // or safely evaluate. Try lodash get first if it's a simple path.
+                if (/^[a-zA-Z0-9_$.\[\]]+$/.test(key)) {
+                    var val = _.get(src, key);
+                    if (val !== undefined) return val;
+                }
+
                 templateCompiled(`<% ReturnValue = ${key} %>`, src);
                 return ReturnValue;
             } catch (err) {
@@ -617,6 +644,11 @@ function bindDataToString(str, data) {
 }
 //===========================================================================================
 function templateCompiled(str, data) {
+    // Validate template string to prevent obvious malicious script execution if untrusted
+    if (str.indexOf('document.cookie') >= 0 || str.indexOf('window.location') >= 0 || str.indexOf('fetch(') >= 0 || str.indexOf('XMLHttpRequest') >= 0) {
+        console.warn("Blocked potentially unsafe template execution.");
+        return "";
+    }
     var compiled = _.template(str);
     return compiled(data);
 }
