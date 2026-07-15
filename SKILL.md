@@ -1,6 +1,6 @@
 ---
 name: fui-skill
-description: Use this skill when developing, structuring, reviewing, or modifying FUI web modules. It provides strict guidelines for the metadata-driven architecture (module.json), mandatory grid layout system, action protocols, and environment-aware workflow rules. Apply the canonical module structure in both editor and chat contexts. In editor or extension contexts with workspace access, work with the real module files. In chat or agent-chat contexts without workspace access, work from pasted artifacts while virtualizing the same module structure in the response.
+description: Use this skill when developing, structuring, reviewing, or modifying FUI web modules. It provides strict guidelines for the metadata-driven architecture (the <fui-app> config block of index.vue), mandatory grid layout system, action protocols, and environment-aware workflow rules. Apply the canonical module structure in both editor and chat contexts. In editor or extension contexts with workspace access, work with the real module files. In chat or agent-chat contexts without workspace access, work from pasted artifacts while virtualizing the same module structure in the response.
 ---
 
 # FUI Skill
@@ -23,13 +23,16 @@ The workspace is organized at two levels. In editor or extension contexts, creat
 
 ```text
 {projectId}/
-|-- _projectInfo.json             (Project metadata)
-|-- project.json                  (Project-level data/watch/controls/set)
-|-- imports/_imports.json         (Project-scope JS/CSS imports)
-|-- components/_components.json   (Project-scope component registry)
+|-- .fuix/                        (System metadata — DO NOT hand-edit)
+|   |-- project.json              (Project metadata)
+|   |-- runtime.json              (Project-level runtime config: apiDomain/login/menu...)
+|   |-- modules.json              (Module list)
+|   |-- components/               (Shared component registry + tree)
+|   |-- imports/                  (Shared import registry)
+|   `-- modules/{moduleId}/       (Per-module metadata: info.json, components.json, tree.json)
 |-- components/uc-*.vue           (Project-scope custom components)
+|-- imports/                      (Project-scope JS/CSS asset files)
 `-- modules/                      (All modules live here)
-    |-- _modules.json             (Module list)
     `-- {moduleId}/               (One folder per module — see below)
 ```
 
@@ -37,27 +40,30 @@ The workspace is organized at two levels. In editor or extension contexts, creat
 
 ```text
 {moduleId}/
-|-- _moduleInfo.json              (Required: module metadata + mTitle + HTMLOnly)
-|-- module.json                   (Required: core data/watch/controls/set)
-|-- script.js                     (Recommended: helper logic)
-|-- imports/_imports.json         (Module-scope JS/CSS imports)
-|-- header.html                   (Full <head> content: <link>/<style>/<script> tags)
+|-- index.vue                     (Required: <fui-app lang="json"> config + <script> helper logic)
 |-- body.html                     (HTMLOnly=false: supplementary; HTMLOnly=true: full page)
-`-- components/                   (Optional custom components)
-    |-- _components.json          (Required when using components/)
-    `-- uc-*.vue                  (Custom components, use `uc-` prefix)
+|-- style.css                     (Module CSS)
+|-- header.html                   (Head inner content: <link>/<meta>/external <script> — NO <style>)
+|-- imports/                      (Module-scope JS/CSS asset files)
+`-- components/uc-*.vue           (Optional custom components, use `uc-` prefix)
 ```
 
-For full structure rules and checklist, see [module-structure.md](references/module-structure.md). Apply that reference in both workspace-aware and chat environments.
+Module metadata (`ProjectID`, `ModuleID`, `Framework`, `HTMLOnly`...) lives in `.fuix/modules/{moduleId}/info.json` — read it, do not hand-edit it.
 
-## module.json Anatomy
+For full structure rules, the old→new mapping table, and the checklist, see [module-structure.md](references/module-structure.md). Apply that reference in both workspace-aware and chat environments.
 
-The core file has four sections:
+## index.vue Anatomy
+
+`index.vue` unifies config and logic in one file:
+
+- `<fui-app lang="json">` block — the **core config** (replaces the old `module.json`). Four sections:
 
 - **`data`**: Reactive state and named Actions
 - **`watch`**: Observers triggering actions on change
 - **`controls`**: UI layout (containers > rows > cols > elements)
 - **`set`**: Module settings (title, menu)
+
+The `<script>` block (replaces the old `script.js`) holds helper logic for `FUN`/`EXE` actions, chart builders, and transforms.
 
 ## Action Protocol
 
@@ -184,11 +190,13 @@ Inside the `cols` array (or nested `innerHTML`), every item is a **Control Objec
 
 ## Vuetify 2 Styling Rule
 
-Priority: component props (`color`, `outlined`, `dense`, `elevation`) → utility classes (`pa-*`, `ma-*`, `d-flex`, `text-*`, `primary--text`) → custom class → inline `style` last. Never write `<style>` blocks inside `.vue` files — put CSS in `header.html`. Never use backtick template strings inside `<template>`.
+Priority: component props (`color`, `outlined`, `dense`, `elevation`) → utility classes (`pa-*`, `ma-*`, `d-flex`, `text-*`, `primary--text`) → custom class → inline `style` last. Never write `<style>` blocks inside component `.vue` files (they are dropped on publish) — put module CSS in `style.css`. Never use backtick template strings inside `<template>`.
 
 ## MCP Tool Workflow
 
 These are the MCP tools for working with FUI modules locally. The user may refer to them by informal names — map them to the correct tool.
+
+> **Local file model.** Regardless of tool payload naming, the on-disk layout is the current one: config + logic in `index.vue` (`<fui-app>` + `<script>`), `body.html`, `style.css`, `header.html`, `components/uc-*.vue`, and system metadata under `.fuix/`. Map any legacy `module.json`/`script.js`/`_moduleInfo.json`/`_components.json`/`_imports.json` mentioned by a tool onto their new equivalents (see [module-structure.md](references/module-structure.md)).
 
 | Tool | Also called | What it does |
 | :--- | :--- | :--- |
@@ -205,32 +213,32 @@ These are the MCP tools for working with FUI modules locally. The user may refer
 | `project_sync` | "đồng bộ project", "refresh project" | Force re-fetch project-level data (project.json, modules list, components, imports) |
 | **Module** | | |
 | `module_list` | "danh sách module" | List all modules in a project |
-| `module_new` | "tạo module mới" | Create a new module; auto-syncs _modules.json |
-| `module_get` | "xem module", "đọc module", "show module" | Fetch JSON declarations: _moduleInfo.json, module.json, imports list, component names, header.html, body.html, script.js |
+| `module_new` | "tạo module mới" | Create a new module; auto-syncs .fuix/modules.json |
+| `module_get` | "xem module", "đọc module", "show module" | Fetch declarations: module metadata, the `<fui-app>` config + `<script>` (index.vue), imports list, component names, header.html, body.html, style.css |
 | `module_checkout` | "lấy module về", "down", "clone module", "tải về local" | Fetch module + project data from FUI server → write to local workspace files |
 | `module_sync` | "refresh", "cập nhật lại", "pull mới nhất" | Re-fetch module from server and overwrite the local workspace |
-| `module_sync_list` | "sync danh sách module" | Re-fetch module list → overwrite local _modules.json |
-| `module_get_ui` | "lấy module.json" | Get module UI JSON (module.json) |
-| `module_get_html` | "lấy header/body html" | Get module header.html and body.html |
-| `module_update_ui` | "cập nhật module.json" | Update module UI JSON on server |
+| `module_sync_list` | "sync danh sách module" | Re-fetch module list → overwrite local .fuix/modules.json |
+| `module_get_ui` | "lấy config UI" | Get module UI JSON (the `<fui-app>` config in index.vue) |
+| `module_get_html` | "lấy header/body html" | Get module header.html, body.html, and style.css |
+| `module_update_ui` | "cập nhật config UI" | Update module UI JSON on server |
 | `module_update_import` | "cập nhật import module" | Update module import config |
 | `module_preview` | "xem trước", "kiểm tra trước khi up", "diff" | Compare local vs server — show what would change, generate approval token |
 | `module_publish_staged` | "up module", "đẩy lên", "push", "lưu lên server" | Push local workspace changes to FUI server (requires approval token from preview) |
 | `module_publish` | "publish trực tiếp" | Publish module directly without staged workflow |
 | **Component** | | |
 | `component_get` | "xem component", "đọc component vue" | Fetch .vue source of one specific component |
-| `component_publish` | "up component", "push component" | Publish a Vue component; auto-syncs _components.json with real server IDs |
-| `component_sync` | "sync component" | Re-fetch component list → overwrite local _components.json |
+| `component_publish` | "up component", "push component" | Publish a Vue component; auto-syncs the component registry (.fuix) with real server IDs |
+| `component_sync` | "sync component" | Re-fetch component list → overwrite local .fuix component registry |
 | **Script** | | |
-| `script_publish` | "up script", "push script.js" | Publish module script.js |
+| `script_publish` | "up script", "push script" | Publish the module `<script>` (index.vue script block) |
 | **Import Files** | | |
 | `file_import_list` | "danh sách import file" | List JS/CSS import files for a project or module |
 | `file_import_get` | "lấy nội dung file import" | Get source code of an inline import file |
 | `file_import_upload` | "cập nhật nội dung file" | Update source code of an inline import file |
-| `file_import_new` | "thêm import file" | Add a new import file; auto-syncs _imports.json |
+| `file_import_new` | "thêm import file" | Add a new import file; auto-syncs the import registry (.fuix) |
 | `file_import_update` | "cập nhật import file" | Update metadata of an import file |
 | `file_import_delete` | "xóa import file" | Delete an import file |
-| `file_import_sync` | "sync import" | Re-fetch import list → overwrite local _imports.json |
+| `file_import_sync` | "sync import" | Re-fetch import list → overwrite local .fuix import registry |
 | **Skill** | | |
 | `skill_get` | "lấy skill rules" | Get FUI skill rules for the current project |
 | **DB Credentials** | | |
@@ -273,19 +281,19 @@ These are the MCP tools for working with FUI modules locally. The user may refer
 
     | Phương án | Khi nào dùng |
     |---|---|
-    | **A — module.json thuần** | Trang đơn giản: hiển thị dữ liệu, CRUD một bảng, form nhập liệu cơ bản. Ít file, dễ maintain. |
-    | **B — Vue component (`uc-*.vue`)** | Giao diện phức tạp: dashboard nhiều vùng, layout tùy chỉnh, logic UI lặp lại nhiều nơi, hoặc module.json controls vượt ~200 dòng. Component giúp AI và developer kiểm soát tốt hơn. |
+    | **A — `<fui-app>` config thuần** | Trang đơn giản: hiển thị dữ liệu, CRUD một bảng, form nhập liệu cơ bản. Ít file, dễ maintain. |
+    | **B — Vue component (`uc-*.vue`)** | Giao diện phức tạp: dashboard nhiều vùng, layout tùy chỉnh, logic UI lặp lại nhiều nơi, hoặc `controls` trong `<fui-app>` vượt ~200 dòng. Component giúp AI và developer kiểm soát tốt hơn. |
 
     > Nếu user không chỉ định: **tự đề xuất** dựa trên mô tả yêu cầu — đừng tự ý chọn mà không thông báo. Giải thích ngắn lý do đề xuất và chờ xác nhận.
 
-    - `module.json` (Required): Define UI and logic.
-    - `_moduleInfo.json` (Required): Metadata (ID, Name, Framework, mTitle, HTMLOnly).
-    - `imports/_imports.json` (Optional): Module-scope JS/CSS import declarations.
-    - `header.html` (Optional): Full `<head>` section content — CSS links, style blocks, script imports. Check `HTMLOnly` in `_moduleInfo.json` first to know what belongs here.
+    - `index.vue` (Required): `<fui-app lang="json">` block for UI + logic config, `<script>` block for helper JS.
+    - `style.css` (Optional): Module CSS.
+    - `header.html` (Optional): Head inner content — external CSS/JS links, `<meta>`. Check `HTMLOnly` in `.fuix/modules/{moduleId}/info.json` first to know what belongs here.
+    - `body.html` (Optional for HTMLOnly=false; the whole page for HTMLOnly=true).
     - `components/` (Optional): Custom Vue components.
     - If the environment is chat-only, return these as separate file payloads or clearly labeled code blocks.
     - When creating a custom Vue component, default to a reusable prop/event/slot API unless the user clearly needs a one-off component tied to a single screen.
-    - Never add `<style>` or `<style scoped>` inside component files. Move those styles to `header.html`.
+    - Never add `<style>` or `<style scoped>` inside component files (dropped on publish). Put module CSS in `style.css`.
     - Never use backtick template strings inside Vue `<template>` markup.
 
 3.  **Reference Docs & Component Selection**: Ưu tiên FUI `f-*` components — FUI đã xây dựng sẵn nhiều tính năng mặc định nên ít code hơn và tận dụng tốt hơn runtime. Chỉ dùng `v-*` khi không có FUI equivalent phù hợp. Tra cứu [component-quickref.md](references/component-quickref.md) và bảng ưu tiên trong [controls-patterns.md](references/controls-patterns.md).
@@ -350,8 +358,8 @@ These are the MCP tools for working with FUI modules locally. The user may refer
 
 6.  **Module Assessment**: When asked to review or assess a module, check structure, JSON standards, separation of concerns, edge cases, and best practices based on the FUI coding standards.
 
-7.  **Editing module.json**: Use valid JSON. Reference state with `vueData.` prefix.
-    - In workspace-aware environments, edit the real `module.json`.
+7.  **Editing the `<fui-app>` config**: Use valid JSON. Reference state with `vueData.` prefix.
+    - In workspace-aware environments, edit the `<fui-app lang="json">` block inside `index.vue`.
     - In chat contexts, return the updated JSON content or a focused patch snippet without implying filesystem access.
 
 8.  **UI Templates**: Reuse the templates from `examples/`, then modify APIs and fields.
@@ -365,7 +373,7 @@ These are the MCP tools for working with FUI modules locally. The user may refer
     | `component.vue` | Custom Vue component mẫu (uc-*) |
     | `module-patterns.json` | **Tham chiếu module hoàn chỉnh** — data/watch/controls kết hợp: menuChucNang, TypeLoad, addNew flag dialog, nested IF/THEN/ELSE, bulk action, openWindow+button+ctrlhotkey, _.find, pushRouter, f-menu inline, row-prop-object |
     | `f-table-patterns.json` | **Tham chiếu f-table chuyên sâu** — tất cả props, mọi loại header (t-check/t-select/t-button/t-link/t-menu/v-chip-group/v-icon/divider), ctrl-update đầy đủ, f-table trong dialog, default-item-only |
-    | `project-patterns.json` | **Tham chiếu project.json** — cấu trúc đầy đủ project config: menuLeft/menu/menuStyle/menuComponent/domainSetting, right theo SystemRight+FunctionRight, quan hệ với module.json set (override title/menu/apiDomain per page) |
+    | `project-patterns.json` | **Tham chiếu project runtime config** (`.fuix/runtime.json`) — cấu trúc đầy đủ: menuLeft/menu/menuStyle/menuComponent/domainSetting, right theo SystemRight+FunctionRight, quan hệ với `<fui-app>` set (override title/menu/apiDomain per page) |
 
 ## Continuous Improvement
 
