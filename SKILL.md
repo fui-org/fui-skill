@@ -192,69 +192,6 @@ Inside the `cols` array (or nested `innerHTML`), every item is a **Control Objec
 
 Priority: component props (`color`, `outlined`, `dense`, `elevation`) → utility classes (`pa-*`, `ma-*`, `d-flex`, `text-*`, `primary--text`) → custom class → inline `style` last. Never write `<style>` blocks inside component `.vue` files (they are dropped on publish) — put module CSS in `style.css`. Never use backtick template strings inside `<template>`.
 
-## MCP Tool Workflow
-
-These are the MCP tools for working with FUI modules locally. The user may refer to them by informal names — map them to the correct tool.
-
-> **Local file model.** Regardless of tool payload naming, the on-disk layout is the current one: config + logic in `index.vue` (`<fui-app>` + `<script>`), `body.html`, `style.css`, `header.html`, `components/uc-*.vue`, and system metadata under `.fuix/`. Map any legacy `module.json`/`script.js`/`_moduleInfo.json`/`_components.json`/`_imports.json` mentioned by a tool onto their new equivalents (see [module-structure.md](references/module-structure.md)).
-
-| Tool | Also called | What it does |
-| :--- | :--- | :--- |
-| **Session** | | |
-| `session_resolve` | "resolve target" | Resolve a /project/module path to real IDs |
-| `session_get` | "module nào đang active", "đang làm module gì" | Show the currently active module target |
-| `session_set` | "chọn module", "đổi module đang làm việc" | Set which module the session is working on |
-| `session_clear` | "bỏ active module" | Clear the active module target |
-| **Project** | | |
-| `project_list` | "danh sách project" | List all FUI projects |
-| `project_save` | "tạo project", "cập nhật project" | Create or update a project |
-| `project_get_data` | "lấy project.json" | Get the runtime JSON config of a project |
-| `project_update_data` | "cập nhật project.json" | Update project runtime config |
-| `project_sync` | "đồng bộ project", "refresh project" | Force re-fetch project-level data (project.json, modules list, components, imports) |
-| **Module** | | |
-| `module_list` | "danh sách module" | List all modules in a project |
-| `module_new` | "tạo module mới" | Create a new module; auto-syncs .fuix/modules.json |
-| `module_get` | "xem module", "đọc module", "show module" | Fetch declarations: module metadata, the `<fui-app>` config + `<script>` (index.vue), imports list, component names, header.html, body.html, style.css |
-| `module_checkout` | "lấy module về", "down", "clone module", "tải về local" | Fetch module + project data from FUI server → write to local workspace files |
-| `module_sync` | "refresh", "cập nhật lại", "pull mới nhất" | Re-fetch module from server and overwrite the local workspace |
-| `module_sync_list` | "sync danh sách module" | Re-fetch module list → overwrite local .fuix/modules.json |
-| `module_get_ui` | "lấy config UI" | Get module UI JSON (the `<fui-app>` config in index.vue) |
-| `module_get_html` | "lấy header/body html" | Get module header.html, body.html, and style.css |
-| `module_update_ui` | "cập nhật config UI" | Update module UI JSON on server |
-| `module_update_import` | "cập nhật import module" | Update module import config |
-| `module_preview` | "xem trước", "kiểm tra trước khi up", "diff" | Compare local vs server — show what would change, generate approval token |
-| `module_publish_staged` | "up module", "đẩy lên", "push", "lưu lên server" | Push local workspace changes to FUI server (requires approval token from preview) |
-| `module_publish` | "publish trực tiếp" | Publish module directly without staged workflow |
-| **Component** | | |
-| `component_get` | "xem component", "đọc component vue" | Fetch .vue source of one specific component |
-| `component_publish` | "up component", "push component" | Publish a Vue component; auto-syncs the component registry (.fuix) with real server IDs |
-| `component_sync` | "sync component" | Re-fetch component list → overwrite local .fuix component registry |
-| **Script** | | |
-| `script_publish` | "up script", "push script" | Publish the module `<script>` (index.vue script block) |
-| **Import Files** | | |
-| `file_import_list` | "danh sách import file" | List JS/CSS import files for a project or module |
-| `file_import_get` | "lấy nội dung file import" | Get source code of an inline import file |
-| `file_import_upload` | "cập nhật nội dung file" | Update source code of an inline import file |
-| `file_import_new` | "thêm import file" | Add a new import file; auto-syncs the import registry (.fuix) |
-| `file_import_update` | "cập nhật import file" | Update metadata of an import file |
-| `file_import_delete` | "xóa import file" | Delete an import file |
-| `file_import_sync` | "sync import" | Re-fetch import list → overwrite local .fuix import registry |
-| **Skill** | | |
-| `skill_get` | "lấy skill rules" | Get FUI skill rules for the current project |
-| **DB Credentials** | | |
-| `db_user_token_set` | "lưu user token", "set userToken", "token để gọi API" | Save Bearer token (userToken) for calling deployed APIs (spAPI_*) — scans workspace if omitted |
-| `db_token_rebuild` | "đổi password DB", "rebuild dbToken", "cập nhật kết nối DB" | Rebuild dbToken from uid+password (reads sqlServer/database from saved config) |
-| **Design** | | |
-| `design_list` | "danh sách design", "có style nào" | List all available brand design systems |
-| `design_get` | "lấy design", "dùng style X" | Load DESIGN.md for a specific brand (e.g. `fui`, `linear`, `bmw`) |
-
-**Sequential fetch workflow** (khi không checkout về local):
-1. `module_get` → nhận JSON declarations + HTML + script (payload nhỏ, không có .vue code)
-2. `component_get` → gọi riêng từng component cần xem/sửa
-
-**Workspace workflow** (recommended cho editing):
-`module_checkout` → edit files in local workspace → `module_preview` → user approves → `module_publish_staged`
-
 ## Instructions
 
 0.  **Bắt buộc nạp reference trước khi làm — KHÔNG bỏ qua bước này**:
@@ -266,7 +203,6 @@ These are the MCP tools for working with FUI modules locally. The user may refer
     | Bất kỳ task nào liên quan FUI | Tier A: `controls-patterns.md` · `ui-patterns.md` · `module-structure.md` |
     | Thiết kế UI, chọn component | + Tier B: `component-quickref.md` · `component-table.md` · `components-input.md` |
     | Gọi API, viết SP | + Tier C: `tapi-reference.md` |
-    | Kết nối DB | + Tier C: `db-workflow.md` |
 
     **Lý do**: Các rule trong reference thay đổi theo thời gian. Training data không phản ánh rule hiện tại — chỉ reference mới là nguồn sự thật. Việc làm sai rồi mới tra cứu tốn chi phí sửa gấp đôi.
 
@@ -307,62 +243,29 @@ These are the MCP tools for working with FUI modules locally. The user may refer
     [component-quickref.md](references/component-quickref.md) · [component-table.md](references/component-table.md) · [components-input.md](references/components-input.md) · [components-dialog.md](references/components-dialog.md) · [components-display.md](references/components-display.md) · [component-design.md](references/component-design.md) · [project-config.md](references/project-config.md)
 
     **Tier C — Domain** (khi cần đến):
-    [tapi-reference.md](references/tapi-reference.md) · [db-workflow.md](references/db-workflow.md) · [pdfmake.md](references/pdfmake.md) · [watcher-patterns.md](references/watcher-patterns.md) · [advanced-techniques.md](references/advanced-techniques.md) · [coding-standards.md](references/coding-standards.md) · [fastproject.md](references/fastproject.md) · [default-function.md](references/default-function.md) · [script-map.md](references/script-map.md) · [ui-templates.md](references/ui-templates.md)
+    [tapi-reference.md](references/tapi-reference.md) · [pdfmake.md](references/pdfmake.md) · [watcher-patterns.md](references/watcher-patterns.md) · [advanced-techniques.md](references/advanced-techniques.md) · [coding-standards.md](references/coding-standards.md) · [fastproject.md](references/fastproject.md) · [default-function.md](references/default-function.md) · [script-map.md](references/script-map.md) · [ui-templates.md](references/ui-templates.md)
 
-    **Tier D — Operations** (khi publish/deploy):
-    [tools-registry.md](references/tools-registry.md) · [verification.md](references/verification.md)
+    **Tier D — Verification** (trước khi bàn giao):
+    [verification.md](references/verification.md)
 
 4.  **Design System**: Khi cần đưa ra quyết định thiết kế giao diện, áp dụng theo thứ tự ưu tiên sau:
 
     **Ưu tiên 1 — Project-local DESIGN.md**: Kiểm tra xem thư mục gốc của project (`{projectId}/DESIGN.md` trong workspace) có file DESIGN.md không. Nếu có, dùng file đó — bỏ qua mọi lựa chọn bên dưới.
 
-    **Ưu tiên 2 — User chỉ định style**: Nếu user yêu cầu dùng một brand/style cụ thể (ví dụ "dùng style BMW", "theo phong cách Linear"), gọi `design_get("<brand>")` để load design system tương ứng.
+    **Ưu tiên 2 — User chỉ định style**: Nếu user yêu cầu dùng một brand/style cụ thể (ví dụ "dùng style BMW", "theo phong cách Linear"), đọc `design-md/<brand>/DESIGN.md` để load design system tương ứng.
 
-    **Ưu tiên 3 — AI tự phân tích và chọn**: Nếu không có file local và user không chỉ định, gọi `design_list` để xem danh sách các style có sẵn, sau đó tự phân tích context (loại trang, mục đích, đối tượng người dùng) để chọn brand phù hợp nhất:
-    - Module admin, CRUD, quản lý dữ liệu → `design_get("fui")`
+    **Ưu tiên 3 — AI tự phân tích và chọn**: Nếu không có file local và user không chỉ định, xem các thư mục con trong `design-md/` để biết các brand có sẵn, sau đó tự phân tích context (loại trang, mục đích, đối tượng người dùng) để chọn brand phù hợp nhất:
+    - Module admin, CRUD, quản lý dữ liệu → đọc `design-md/fui/DESIGN.md`
     - Trang HTML công khai, landing page, trang giới thiệu → chọn brand phù hợp với tone/ngành của project
     - Không chắc → hỏi user trước khi chọn
 
-5.  **DB Tools — Quy trình và quy tắc bắt buộc**:
+5.  **Module Assessment**: When asked to review or assess a module, check structure, JSON standards, separation of concerns, edge cases, and best practices based on the FUI coding standards.
 
-    **Phân loại tool:** Tra cứu [tools-registry.md](references/tools-registry.md) để biết mức độ rủi ro chính xác của từng tool trước khi gọi.
-
-    **Quy tắc 0 — Xác nhận projectId trước khi kết nối DB:**
-    Thông tin kết nối lưu vào `{projectId}/_db/` — projectId thường tương ứng với alias của database. Nếu user không chỉ rõ hoặc chưa rõ alias thuộc project nào → **hỏi xác nhận** trước khi gọi `db_connect`. Không tự đoán rồi gọi luôn.
-
-    **Quy tắc 1 — Cấm DROP TABLE / ALTER TABLE:**
-    Không được thực thi và không được gợi ý `DROP TABLE` hay `ALTER TABLE` trong bất kỳ ngữ cảnh nào — kể cả bên trong script tạo SP/function. Các thay đổi cấu trúc bảng phải do lập trình viên tự thực hiện. Code đã block ở level tool.
-
-    **Quy tắc 2 — Cấm DELETE / UPDATE không có WHERE:**
-    Không gọi `db_sql_execute_nonquery` với câu DELETE hoặc UPDATE không có mệnh đề WHERE. Nếu có yêu cầu dạng này, chỉ hiển thị SQL để user copy và tự quyết định — không thực thi tự động. Code đã block ở level tool.
-
-    **Quy tắc 3 — Auto-log trước khi sửa SP/function:**
-    `db_sp_deploy` tự động lưu định nghĩa hiện tại của SP vào `_db/sp-history/{name}_{timestamp}.sql` trước khi deploy. Nếu cần rollback: đọc file history cũ, đặt lại vào `_db/sp/{name}.sql` và deploy lại.
-
-    **Quy tắc 4 — Xác nhận trước khi thực thi SQL:**
-    Trước khi gọi `db_sql_execute` (SELECT lấy dữ liệu user) hoặc `db_sql_execute_nonquery` với INSERT/UPDATE/DELETE, phải:
-    1. Trình bày ngắn gọn: query làm gì, dữ liệu nào bị ảnh hưởng, số dòng ước tính nếu có
-    2. Đợi xác nhận từ lập trình viên trước khi gọi tool
-
-    **GRANT EXECUTE:** `db_sp_deploy` chỉ tự động `GRANT EXECUTE TO public` khi script chứa `CREATE PROCEDURE`. Với `ALTER PROCEDURE` thì **không cần** grant lại.
-
-    **Giới hạn dữ liệu khi truy vấn (CRITICAL):** Dữ liệu thực tế có thể rất lớn — nếu không giới hạn, response sẽ vượt quá khả năng xử lý của context.
-
-    - **`db_sql_execute`**: Luôn thêm `TOP 20` (hoặc ít hơn nếu chỉ cần xem cấu trúc). Không SELECT cột kiểu binary, image, varbinary(max), nvarchar(max) trừ khi được yêu cầu cụ thể.
-
-    **Quy trình viết SP phức tạp — không test API trực tiếp:**
-    Không gọi `spAPI_*` để test trừ khi user yêu cầu rõ ràng (tốn chi phí). Thay vào đó, kiểm tra logic bằng cách:
-    1. Viết và chạy từng sub-query nhỏ riêng lẻ qua `db_sql_execute` với `TOP 10–20` để xác nhận dữ liệu đúng
-    2. Từng bước ghép các sub-query lại thành query hoàn chỉnh
-    3. Chỉ deploy SP khi đã xác nhận logic đúng qua các bước trên
-
-6.  **Module Assessment**: When asked to review or assess a module, check structure, JSON standards, separation of concerns, edge cases, and best practices based on the FUI coding standards.
-
-7.  **Editing the `<fui-app>` config**: Use valid JSON. Reference state with `vueData.` prefix.
+6.  **Editing the `<fui-app>` config**: Use valid JSON. Reference state with `vueData.` prefix.
     - In workspace-aware environments, edit the `<fui-app lang="json">` block inside `index.vue`.
     - In chat contexts, return the updated JSON content or a focused patch snippet without implying filesystem access.
 
-8.  **UI Templates**: Reuse the templates from `examples/`, then modify APIs and fields.
+7.  **UI Templates**: Reuse the templates from `examples/`, then modify APIs and fields.
     - In workspace-aware environments, copy or adapt the template files directly.
     - In chat contexts, inline the adapted template content in the response.
 
@@ -378,22 +281,3 @@ These are the MCP tools for working with FUI modules locally. The user may refer
 ## Continuous Improvement
 
 After a complex task: ask _"Có bài học hay pattern nào cần bổ sung vào FUI skill không?"_. Nếu user chỉ ra sai lầm hoặc cách tốt hơn: cập nhật hoặc xóa thông tin trong `references/` ngay lập tức. Không để thông tin lỗi thời tồn tại trong skill.
-
-## Skill Sync — Cập nhật memory sau khi sync
-
-Sau mỗi lần `skill_sync` hoặc `skill_get` trả về nội dung mới, thực hiện ngay:
-
-1. **Đọc lại các file reference đã thay đổi** — so sánh với những gì đã biết trong session
-2. **Cập nhật memory** nếu có kiến thức mới đáng ghi nhớ lâu dài:
-   - Pattern mới trong `references/` → ghi vào `project` hoặc `feedback` memory
-   - Tool mới hoặc thay đổi hành vi tool → cập nhật memory liên quan
-   - Quy tắc mới được bổ sung → ghi ngay để áp dụng từ lần sau
-3. **Xóa memory cũ** nếu skill đã override thông tin lỗi thời
-
-**Trigger tự động:** Sau `skill_sync` thành công, không cần user nhắc — tự đọc lại `SKILL.md` và các reference đã cập nhật, sau đó ghi memory tương ứng.
-
-**Ưu tiên ghi nhớ:**
-- Quy tắc bắt buộc (CRITICAL, bắt buộc, cấm) → ghi vào `feedback` memory
-- Pattern thực tế từ codebase → ghi vào `project` memory
-- Thông tin đã có trong memory mà skill vừa mâu thuẫn → cập nhật/xóa memory cũ
-

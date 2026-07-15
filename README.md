@@ -106,7 +106,6 @@ Tài liệu hướng dẫn phát triển được phân chia theo 4 mức độ 
 
 ### ⚙️ Tier C: Logic & Domain Integration (Tích hợp chức năng)
 - [Web API & Stored Procedure (tAPI)](references/tapi-reference.md) — Định nghĩa kết nối backend API.
-- [Quy trình làm việc với CSDL](references/db-workflow.md) — Hướng dẫn truy vấn dữ liệu & triển khai SP an toàn.
 - [Watcher Patterns](references/watcher-patterns.md) — Bắt sự kiện thay đổi dữ liệu reactive.
 - [Các hàm tiện ích hệ thống](references/default-function.md) — Danh sách hàm helper có sẵn của FUI.
 - [Kỹ thuật lập trình nâng cao](references/advanced-techniques.md) — Xử lý logic phức tạp.
@@ -115,8 +114,7 @@ Tài liệu hướng dẫn phát triển được phân chia theo 4 mức độ 
 - [Bản đồ Mapping Script](references/script-map.md) — Cơ chế ánh xạ runtime script.
 - [Quy trình phát triển Fullstack](references/fullstack-workflow.md) — Cách tích hợp End-to-End.
 
-### 🛡️ Tier D: Quality Assurance & Operations (Phát hành)
-- [Danh mục Công cụ (MCP Tools)](references/tools-registry.md) — Danh sách tool hỗ trợ và quy định an toàn thao tác.
+### 🛡️ Tier D: Quality Assurance (Nghiệm thu)
 - [Quy trình nghiệm thu (Verification)](references/verification.md) — Checklist kiểm tra chất lượng trước khi publish.
 
 ---

@@ -1,6 +1,6 @@
 # FUI Definition-of-Done Checklists
 
-Use these checklists before publishing any artifact. Each item is a gate — a module/SP/component is not ready if any required item is unchecked.
+Use these checklists before finishing any artifact. Each item is a gate — a module/SP/component is not ready if any required item is unchecked.
 
 ---
 
@@ -8,19 +8,19 @@ Use these checklists before publishing any artifact. Each item is a gate — a m
 
 ### Structure
 
-- [ ] `_moduleInfo.json` exists with `ModuleID`, `ModuleName`, `Framework`, `mTitle`, `HTMLOnly`
-- [ ] `module.json` exists and is valid JSON (no trailing commas, no comments) — **validate trước khi ghi**: sau mỗi lần edit JSON dài, mentally check hoặc re-read để đảm bảo không có trailing comma sau element cuối cùng trong mảng/object
-- [ ] If custom components are used: `components/_components.json` exists and lists all `uc-*.vue` files
-- [ ] `imports/_imports.json` exists if module imports external JS/CSS
+- [ ] `index.vue` exists with a valid `<fui-app lang="json">` block (no trailing commas, no comments) — **validate trước khi ghi**: sau mỗi lần edit JSON dài, re-read để đảm bảo không có trailing comma sau element cuối cùng trong mảng/object
+- [ ] Module metadata (`ModuleID`, `ModuleName`, `Framework`, `HTMLOnly`) present in `.fuix/modules/{moduleId}/info.json` (system-managed — do not hand-edit)
+- [ ] Module CSS is in `style.css` (not in `header.html`, not in component `<style>` blocks)
+- [ ] Import asset files are placed under `imports/` if the module uses external JS/CSS
 
-### module.json — Data
+### `<fui-app>` config — Data
 
 - [ ] All reactive state variables declared in `data[]` before being referenced in actions
 - [ ] All named actions are reachable (at least one `CALL` or `watch` or button click references each)
 - [ ] No hardcoded IDs — inputs reference `vueData.someVar` not literal numbers
 - [ ] `OUT` keys match declared state variable names exactly (case-sensitive)
 
-### module.json — Actions
+### `<fui-app>` config — Actions
 
 - [ ] Every `API` action has both `IN` and `OUT` (or `CALLBACK`) defined
 - [ ] Every delete action has `CONFIRM` before `API`
@@ -29,7 +29,7 @@ Use these checklists before publishing any artifact. Each item is a gate — a m
 - [ ] `IF/THEN/ELSE` branches all have matching action structures
 - [ ] No raw `EXE` blocks that duplicate logic already expressible in actions
 
-### module.json — Controls
+### `<fui-app>` config — Controls
 
 - [ ] `controls` array starts with `{ "prop": "fluid grid-list-md", "rows": [...] }`
 - [ ] Every item in `cols` has a `w` property
@@ -39,7 +39,7 @@ Use these checklists before publishing any artifact. Each item is a gate — a m
 - [ ] All `v-if` expressions include `vueData.` prefix where referencing state
 - [ ] Dialog containers use `el: "hidden-container"` — one per dialog
 
-### module.json — Watch
+### `<fui-app>` config — Watch
 
 - [ ] Watch keys reference declared state variables
 - [ ] `deep-watch` used for nested object/array observation
@@ -54,11 +54,10 @@ Use these checklists before publishing any artifact. Each item is a gate — a m
 - [ ] Charts use `f-echart` (not `f-chart`) when drilldown or advanced types are needed
 - [ ] Date/time fields use `f-date`/`f-time` (not `v-text-field` + manual parsing)
 
-### Publish Workflow
+### Before Publishing
 
-- [ ] `module_preview` run and diff reviewed before publishing
-- [ ] User has explicitly approved the diff
-- [ ] `module_publish_staged` called only after approval token received from preview
+- [ ] Local changes reviewed (diff) before pushing to the server
+- [ ] User has explicitly approved the changes to be published
 
 ---
 
@@ -83,6 +82,7 @@ Use these checklists before publishing any artifact. Each item is a gate — a m
 - [ ] No direct string concatenation for SQL (use parameterized queries)
 - [ ] `GRANT EXECUTE ON [spName] TO [public]` present after `CREATE PROCEDURE`
 - [ ] `ALTER PROCEDURE` scripts do NOT include a new `GRANT EXECUTE` (not needed)
+- [ ] No `DROP TABLE` / `ALTER TABLE` — table structure changes are the developer's responsibility
 
 ### Logic
 
@@ -91,12 +91,11 @@ Use these checklists before publishing any artifact. Each item is a gate — a m
 - [ ] Transactions used for multi-step writes
 - [ ] SP tested with representative input before deploy
 
-### Deploy Workflow
+### Before Deploy
 
-- [ ] `db_sp_save` called first (save to local, no DB change)
-- [ ] Full SP body reviewed in local file before deploy
+- [ ] Full SP body reviewed before deploy
 - [ ] Summary presented to user: SP name, operation type (CREATE/ALTER), affected tables
-- [ ] User has explicitly confirmed before `db_sp_deploy`
+- [ ] User has explicitly confirmed the deploy
 
 ---
 
@@ -105,8 +104,7 @@ Use these checklists before publishing any artifact. Each item is a gate — a m
 ### File
 
 - [ ] Filename starts with `uc-` prefix
-- [ ] Registered in `_components.json`
-- [ ] No `<style>` or `<style scoped>` block — styles go in `header.html`
+- [ ] No `<style>` or `<style scoped>` block — module styles go in `style.css` (component `<style>` is dropped on publish)
 - [ ] No backtick template strings inside `<template>`
 
 ### API Design
@@ -120,17 +118,16 @@ Use these checklists before publishing any artifact. Each item is a gate — a m
 
 - [ ] Component does not fetch data directly unless it is explicitly a data-owning component
 - [ ] No hardcoded route/module paths inside the component
-- [ ] No permission logic inside component — permission gating stays in `module.json`
+- [ ] No permission logic inside component — permission gating stays in the `<fui-app>` config
 
 ---
 
 ## Import File Checklist
 
-- [ ] File type matches declared `ContentType` (`.js` → `application/javascript`, `.css` → `text/css`)
+- [ ] File type matches declared content type (`.js` → `application/javascript`, `.css` → `text/css`)
 - [ ] `sort` >= 40 khi thêm import mới — giá trị 1–39 dành cho hệ thống, không dùng
-- [ ] Content tested locally before `file_import_upload`
+- [ ] Content tested locally before pushing
 - [ ] No sensitive data (tokens, passwords) in JS/CSS import files
-- [ ] If updating an existing file: `file_import_get` called first to review current content
 
 ---
 
@@ -139,22 +136,6 @@ Use these checklists before publishing any artifact. Each item is a gate — a m
 Khi server báo lỗi hoặc trang hiển thị sai sau khi publish:
 
 1. **Review file vừa sửa trước tiên** — đọc lại toàn bộ file đã chỉnh sửa trong lần publish đó, không nhảy sang nguyên nhân khác
-2. Nếu file trông đúng: chạy `module_preview` để xem diff — kiểm tra server đang lưu gì so với local
-3. Nếu preview báo `Controls: 0` / `Data keys: 0`: đó là server đang giữ bản cũ bị lỗi, không phải local — push lại để ghi đè
-4. Chỉ khi local file đã xác nhận đúng mà lỗi vẫn còn: mới kiểm tra các file khác (header.html, script.js, imports)
-
----
-
-## Quick Risk Gate
-
-Before any mutating tool call, answer:
-
-| Question | If NO → |
-|---|---|
-| Is this a ReadOnly tool? | Confirm intent with user |
-| Have I shown the user a summary? | Show summary first, then wait |
-| Is this a 🔴 Destructive tool? | Require explicit user confirmation |
-| For `module_publish_staged`: do I have an approval token? | Run `module_preview` first |
-| For `db_sp_deploy`: has user seen the SP body? | Show SP body, wait for OK |
-
-See [tools-registry.md](tools-registry.md) for the full per-tool classification.
+2. Nếu file trông đúng: xem lại diff local-vs-server để kiểm tra server đang lưu gì so với local
+3. Nếu diff báo `Controls: 0` / `Data keys: 0`: đó là server đang giữ bản cũ bị lỗi, không phải local — push lại để ghi đè
+4. Chỉ khi local file đã xác nhận đúng mà lỗi vẫn còn: mới kiểm tra các file khác (`index.vue` `<script>`, `header.html`, `style.css`, `imports/`)
